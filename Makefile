@@ -14,6 +14,8 @@ DEPFILES := $(OBJS:%.o=%.d)
 CFLAGS := $(IFLAGS) -Wall -MMD -MP
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)
+run: all
+	./$(BUILDDIR)/$(TARGETAPP)
 
 $(BUILDDIR)/$(TARGETAPP): $(OBJS)
 	$(CC) $(OBJS) -o $@
