@@ -87,3 +87,19 @@ array *read_array(size_t rows, size_t cols, const char *array_file)
 	fclose(file);
 	return ptr_array;
 }
+
+void set_val(const u_int row, const u_int col, const int val, array *array)
+{
+	array->data[row * array->cols + col] = val;
+}
+
+void fill(array *arr, const int val)
+{
+	for (int i = 0; i < arr->rows; i++)
+	{
+		for (int j = 0; j < arr->cols; j++)
+		{
+			set_val(i, j, val, arr);
+		}
+	}
+}

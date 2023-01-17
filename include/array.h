@@ -17,5 +17,7 @@ typedef struct array
 void print_array(array *array);
 array *read_array(size_t rows, size_t cols, const char *array_file);
 array *get_line(const char *instr, const u_int index, array *input_array);
+void set_val(const u_int row, const u_int col, const int val, array *array);
+void fill(array *array, const int value);
 
 #endif
