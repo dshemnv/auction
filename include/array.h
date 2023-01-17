@@ -1,14 +1,21 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
-#define ROWS 4
-#define COLS 4
+#define ROWS 10
+#define COLS 10
 
-typedef double array_2d[ROWS * COLS];
-typedef double array_1d[COLS];
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-void print_array(array_2d *array);
-void print_row(array_1d *array);
-array_1d *get_row(int line_index, array_2d *array);
-array_1d *get_col(int col_index, array_2d *array);
+typedef struct array
+{
+	u_int rows;
+	u_int cols;
+	double data[ROWS * COLS];
+} array;
+
+void print_array(array *array);
+array *read_array(size_t rows, size_t cols, const char *array_file);
+array *get_line(const char *instr, const u_int index, array *input_array);
 
 #endif
