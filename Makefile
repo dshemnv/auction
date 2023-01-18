@@ -7,9 +7,10 @@ SRCDIR := src
 BUILDDIR := bin
  
 IFLAGS := $(addprefix -I,$(IDIR))
-SRCS := $(wildcard $(SRCDIR)/*.c)
-OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.c=.o))
+SRCS := $(wildcard $(SRCDIR)/*.cpp)
+OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
+LIBS := -lm
 
 CFLAGS := $(IFLAGS) -Wall -MMD -MP
 
@@ -18,9 +19,9 @@ run: all
 	./$(BUILDDIR)/$(TARGETAPP)
 
 $(BUILDDIR)/$(TARGETAPP): $(OBJS)
-	$(CC) $(OBJS) -o $@
+	$(CC) $(OBJS) $(LIBS) -o $@
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CXXFLAGS) -c $< -o $@
 
