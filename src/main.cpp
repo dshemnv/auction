@@ -6,8 +6,13 @@
 int main()
 {
 	array *A;
+	auction_state *state;
+	int n_agents = 4;
+	int n_objects = 4;
 
-	A = read_array(4, 4, "arr.txt");
+	state = init_auction_state(n_agents, n_objects);
+
+	A = read_array(4, 4, "/home/dshem/Documents/these/ressources/papers/rapido2023/experiments/auction_c/arr.txt");
 	printf("Loaded array:\n");
 	print_array(A);
 
@@ -16,11 +21,12 @@ int main()
 	int *pos1 = (int *)malloc(sizeof(int *));
 	int *pos2 = (int *)malloc(sizeof(int *));
 
-	int line = 2;
+	solve_jacobi(A, 0.03, state);
 
-	find_top2_with_pos_in_line(A, line, max1, max2, pos1, pos2);
-
-	printf("Found top1 %f at %d and top2 %f at %d\n", *max1, *pos1, *max2, *pos2);
+	for (int i = 0; i < state->n_unassigned_agents; i++)
+	{
+		printf("Agent %d bidded %lf\n", i, state->prices[i]);
+	}
 
 	return 0;
 }

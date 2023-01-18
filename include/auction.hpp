@@ -11,9 +11,18 @@ typedef struct assignment
 	int object;
 } assignment;
 
-typedef assignment result[10000];
+typedef struct auction_state
+{
+	int unassigned_agents[N_MAX];
+	int unassigned_objects[N_MAX];
+	int n_unassigned_agents;
+	int n_unassigned_objects;
+	double bids[N_MAX];
+	double prices[N_MAX];
+	assignment current_assignment[N_MAX];
+	assignment latest_assignment;
+} auction_state;
 
-void bid(array unassigned_agents, array unassigned_objects, array bids);
-void init_assignments(const size_t agents, const size_t objects, assignment **assig);
-result *solve_jacobi(array *cost_matrix, const float eps);
+auction_state *init_auction_state(int n_agents, int n_objects);
+void solve_jacobi(array *cost_matrix, const double eps, auction_state *state);
 #endif // ifndef _AUCTION_H
