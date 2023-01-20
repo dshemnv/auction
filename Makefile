@@ -12,11 +12,14 @@ OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
 LIBS := -lm
 
-CFLAGS := $(IFLAGS) -Wall -MMD -MP
+CFLAGS := $(IFLAGS) -Wall -MMD -MP -g
+VALFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes 
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)
 run: all
 	./$(BUILDDIR)/$(TARGETAPP)
+check: all
+	colour-valgrind $(VALFLAGS) $(BUILDDIR)/$(TARGETAPP) 
 
 $(BUILDDIR)/$(TARGETAPP): $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $@

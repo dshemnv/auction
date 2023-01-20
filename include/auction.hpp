@@ -9,20 +9,25 @@ typedef struct assignment
 {
 	int agent;
 	int object;
+	double value;
 } assignment;
 
-typedef struct auction_state
+typedef struct assignments
 {
-	int unassigned_agents[N_MAX];
-	int unassigned_objects[N_MAX];
-	int n_unassigned_agents;
-	int n_unassigned_objects;
-	double bids[N_MAX];
-	double prices[N_MAX];
-	assignment current_assignment[N_MAX];
-	assignment latest_assignment;
-} auction_state;
+	bool is_empty;
+	int size;
+	assignment result[N_MAX];
+} assignments;
 
-auction_state *init_auction_state(int n_agents, int n_objects);
-void solve_jacobi(array *cost_matrix, const double eps, auction_state *state);
+int idx_max_bid_for_object(int *objects_array, double *bids_array, bool *array_mask, int array_len, int object, double value);
+
+void create_first_results(assignments *result, int *objects_array, double *bids_array, bool *array_mask, bool *objects_mask, bool *agents_mask, int n_agents);
+
+void assignements_to_arrays(assignments *results, array *agent_to_object, array *object_to_agent);
+
+void update_prices(assignments *result, bool *array_mask, double *prices, int n_agents);
+
+void reset_assignement(bool *array_mask, int len);
+
+void solve_jacobi(array *cost_matrix, const double eps, assignments *result);
 #endif // ifndef _AUCTION_H

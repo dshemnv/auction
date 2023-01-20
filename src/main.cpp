@@ -5,28 +5,26 @@
 
 int main()
 {
-	array *A;
-	auction_state *state;
+	array A;
 	int n_agents = 4;
 	int n_objects = 4;
 
-	state = init_auction_state(n_agents, n_objects);
-
-	A = read_array(4, 4, "/home/dshem/Documents/these/ressources/papers/rapido2023/experiments/auction_c/arr.txt");
+	read_array(n_agents, n_objects, "/home/dshem/Documents/these/ressources/papers/rapido2023/experiments/auction_c/arr.txt", &A);
 	printf("Loaded array:\n");
 	print_array(A);
 
-	double *max1 = (double *)malloc(sizeof(double *));
-	double *max2 = (double *)malloc(sizeof(double *));
-	int *pos1 = (int *)malloc(sizeof(int *));
-	int *pos2 = (int *)malloc(sizeof(int *));
-
-	solve_jacobi(A, 0.03, state);
-
-	for (int i = 0; i < state->n_unassigned_agents; i++)
+	assignments result;
+	assignment assig = {.agent = -1, .object = -1, .value = -1};
+	result.is_empty = true;
+	result.size = n_agents;
+	for (int i = 0; i < result.size; i++)
 	{
-		printf("Agent %d bidded %lf\n", i, state->prices[i]);
+		result.result[i] = assig;
 	}
+	solve_jacobi(&A, 0.03, &result);
+	array agent_to_object, object_to_agent;
+	assignements_to_arrays(&result, &agent_to_object, &object_to_agent);
 
-	return 0;
+	print_array(agent_to_object);
+	return EXIT_SUCCESS;
 }

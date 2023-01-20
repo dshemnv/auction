@@ -1,27 +1,28 @@
 #include "array.hpp"
+#include <cassert>
 
-void print_array(array *input_array)
+void print_array(array input_array)
 {
-	double *ptr_arr = input_array->data;
+	double *ptr_arr = input_array.data;
 	printf("[");
-	for (int i = 0; i < input_array->rows; i++)
+	for (int i = 0; i < input_array.rows; i++)
 	{
-		for (int j = 0; j < input_array->cols; j++)
+		for (int j = 0; j < input_array.cols; j++)
 		{
 			if (i == 0)
 			{
-				printf("%.2lf  ", ptr_arr[i * input_array->cols + j]);
+				printf("%.2lf  ", ptr_arr[i * input_array.cols + j]);
 			}
-			else if (i == input_array->rows - 1 && j == input_array->cols - 1)
+			else if (i == input_array.rows - 1 && j == input_array.cols - 1)
 			{
-				printf(" %.2lf", ptr_arr[i * input_array->cols + j]);
+				printf(" %.2lf", ptr_arr[i * input_array.cols + j]);
 			}
 			else
 			{
-				printf(" %.2lf ", ptr_arr[i * input_array->cols + j]);
+				printf(" %.2lf ", ptr_arr[i * input_array.cols + j]);
 			}
 		}
-		if (i < input_array->rows - 1)
+		if (i < input_array.rows - 1)
 		{
 			printf("\n");
 		}
@@ -29,14 +30,13 @@ void print_array(array *input_array)
 	printf("]\n");
 }
 
-array *read_array(const int rows, const int cols, const char *array_file)
+void read_array(int rows, int cols, const char *array_file, array *output_array)
 {
-	array *ptr_array = (array *)malloc(sizeof(array));
 	FILE *file;
 	double tmp_val;
 
-	ptr_array->cols = cols;
-	ptr_array->rows = rows;
+	output_array->cols = cols;
+	output_array->rows = rows;
 
 	file = fopen(array_file, "r");
 	if (file == NULL)
@@ -50,11 +50,10 @@ array *read_array(const int rows, const int cols, const char *array_file)
 		for (int j = 0; j < cols; j++)
 		{
 			fscanf(file, "%lf", &tmp_val);
-			ptr_array->data[i * cols + j] = tmp_val;
+			output_array->data[i * cols + j] = tmp_val;
 		}
 	}
 	fclose(file);
-	return ptr_array;
 }
 
 void fill(array *arr, const double val)
@@ -71,7 +70,7 @@ void fill(array *arr, const double val)
 
 void find_top2_with_pos_in_row(array *array, int row, double *max1, double *max2, int *pos1, int *pos2)
 {
-	if (row > array->rows - 1)
+	if (row >= array->rows)
 	{
 		fprintf(stderr, "Row %d is out of bounds. Arrays has %d rows\n ", row, array->rows);
 		exit(EXIT_FAILURE);
@@ -83,7 +82,7 @@ void find_top2_with_pos_in_row(array *array, int row, double *max1, double *max2
 	int pos_val1 = ptr_row[0] > ptr_row[1] ? 0 : 1;
 	int pos_val2 = ptr_row[0] < ptr_row[1] ? 0 : 1;
 
-	for (int i = 0; i < array->cols; i++)
+	for (int i = 2; i < array->cols; i++)
 	{
 		if (ptr_row[i] > max_val1)
 		{
@@ -99,10 +98,29 @@ void find_top2_with_pos_in_row(array *array, int row, double *max1, double *max2
 			pos_val2 = i;
 		}
 	}
+	assert(max_val1 >= max_val2);
 	*max1 = max_val1;
 	*max2 = max_val2;
 	*pos1 = pos_val1;
 	*pos2 = pos_val2;
+}
+
+void find_top1_with_pos_in_row(array *array, int row, double *max, int *pos)
+{
+	double *ptr_row = array->data + row * array->cols;
+	double max_val = ptr_row[0];
+	int pos_val = 0;
+
+	for (int i = 1; i < array->cols; i++)
+	{
+		if (ptr_row[i] > max_val)
+		{
+			max_val = ptr_row[i];
+			pos_val = i;
+		}
+	}
+	*max = max_val;
+	*pos = pos_val;
 }
 
 void find_top2_with_pos_in_col(array *array, int col, double *max1, double *max2, int *pos1, int *pos2)
@@ -159,7 +177,7 @@ void sub_val_to_row(array *array, int row, double val)
 	}
 }
 
-void sub_vals_to_arr_row(array *arr, int row, array *vals, double *res)
+void sub_vals_to_arr_row(array *arr, int row, array *vals)
 {
 	double *ptr_arr = arr->data;
 	double *ptr_vals = vals->data;
@@ -171,7 +189,7 @@ void sub_vals_to_arr_row(array *arr, int row, array *vals, double *res)
 	}
 	for (int i = 0; i < arr->cols; i++)
 	{
-		res[i] = ptr_arr[row * arr->cols + i] - ptr_vals[i];
+		ptr_arr[row * arr->cols + i] = ptr_arr[row * arr->cols + i] - ptr_vals[i];
 	}
 }
 
