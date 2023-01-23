@@ -1,3 +1,5 @@
 bin
 .vscode
+.venv
+gen_rnd_array.py
 
