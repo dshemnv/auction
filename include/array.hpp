@@ -1,7 +1,7 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
-#define N_MAX 100000
-#define ARR_MAX 1000000000.0
+#define N_MAX 100
+#define ARR_MAX 10000.0
 
 #include <cstdlib>
 #include <cstdio>
