@@ -185,6 +185,7 @@ void find_top2_with_pos_in_col(array<T> *array, int col, T *max1, T *max2, int *
 			max_val2 = ptr_col[i * array->cols + col];
 		}
 	}
+	assert(max_val2 > max_val1);
 	*max1 = max_val1;
 	*max2 = max_val2;
 	*pos1 = pos_val1;
@@ -218,7 +219,7 @@ void sub_vals_to_arr_row(array<T> *arr, int row, array<T> *vals)
 
 	if (arr->cols != vals->cols)
 	{
-		fprintf(stderr, "Row should have the same lenght as array. Arrays has %d columns, row has %d columns.\n", arr->cols, vals->cols);
+		fprintf(stderr, "Row should have the same length as array. Arrays has %d columns, row has %d columns.\n", arr->cols, vals->cols);
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < arr->cols; i++)

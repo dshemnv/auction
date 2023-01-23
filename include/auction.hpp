@@ -65,23 +65,30 @@ void create_first_results(assignments<T> *result, array<int> *objects_array, arr
 template <typename T = double>
 void update_assignment(assignments<T> *result, array<int> *object_array, array<T> *bids_array, array<bool> *array_mask, array<bool> *objects_mask, array<bool> *agents_mask)
 {
-	for (int i = 0; i < array_mask->cols; i++)
+	for (int j = 0; j < array_mask->cols; j++)
 	{
-		if (array_mask->data[i])
+		if (!array_mask->data[j])
 		{
-			int old_agent = result->result[i].agent;
-			int old_object = result->result[i].object;
-			if (old_agent != -1)
+			continue;
+		}
+		for (int i = 0; i < result->size; i++)
+		{
+			if (object_array->data[j] == result->result[i].object || j == result->result[i].agent)
 			{
-				printf("Replacing agent %d that was assigned to object %d with agent %d\n", old_agent, old_object, i);
-				agents_mask->data[old_agent] = false;
-				objects_mask->data[old_object] = false;
+				int old_agent = result->result[i].agent;
+				int old_object = result->result[i].object;
+				if (old_agent != -1)
+				{
+					// printf("Replacing agent %d that was assigned to object %d with agent %d\n", old_agent, old_object, i);
+					agents_mask->data[old_agent] = false;
+					objects_mask->data[old_object] = false;
+				}
 			}
-			result->result[i].agent = i;
-			result->result[i].object = object_array->data[i];
-			result->result[i].value = bids_array->data[i];
-			agents_mask->data[i] = true;
-			objects_mask->data[i] = true;
+			result->result[j].agent = j;
+			result->result[j].object = object_array->data[j];
+			result->result[j].value = bids_array->data[j];
+			agents_mask->data[j] = true;
+			objects_mask->data[object_array->data[j]] = true;
 		}
 	}
 }
@@ -94,7 +101,7 @@ void update_prices(assignments<T> *result, array<bool> *array_mask, array<T> *pr
 		if (array_mask->data[i])
 		{
 			prices->data[result->result[i].object] = result->result[i].value;
-			printf("Agent %d gets object %d\n", i, result->result[i].object);
+			// printf("Agent %d gets object %d\n", i, result->result[i].object);
 		}
 	}
 	reset_assignement(array_mask);
@@ -145,7 +152,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 			double max1, max2;
 			int pos1;
 			find_top2_with_pos_in_row(&values, 0, &max1, &max2, &pos1);
-			printf("  Agent %d : %f %f pos associated to max1 %d\n", i, max1, max2, pos1);
+			// printf("  Agent %d : %f %f pos associated to max1 %d\n", i, max1, max2, pos1);
 			int add_index = idx_max_bid_for_object<T>(&agent_top_obj, &agent_top_bid, &assignement_exists, pos1, max1 - max2 + eps);
 			if (add_index > 0)
 			{
@@ -177,10 +184,10 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 		}
 		update_prices<T>(result, &assignement_exists, &prices);
 
-		bool assignment_done = assigned_objects.data[0];
+		bool assignment_done = assigned_agents.data[0];
 		for (int i = 1; i < n_objects; i++)
 		{
-			assignment_done = assignment_done && assigned_objects.data[i];
+			assignment_done = assignment_done && assigned_agents.data[i];
 		}
 		if (assignment_done == true)
 		{
