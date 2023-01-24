@@ -12,7 +12,7 @@ OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
 LIBS := -lm
 
-CFLAGS := $(IFLAGS) -Wall -MMD -MP -O2 -g3 -march=native -mtune=native
+CFLAGS := $(IFLAGS) -Wall -MMD -MP -g -march=native -mtune=native
 VALFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes 
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)

@@ -1,6 +1,7 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
 #define ARR_MAX 10000.0
+#define MIN_INF 1e-32
 
 #include <cstdlib>
 #include <cstdio>
@@ -10,6 +11,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 template <typename T = double>
 struct array
@@ -23,27 +25,36 @@ template <typename T>
 void print_array(array<T> *input_array)
 {
 	T *ptr_arr = input_array->data;
+	std::cout << std::fixed;
+	std::cout << std::setprecision(2);
 	std::cout << "[";
 	for (int i = 0; i < input_array->rows; i++)
 	{
 		for (int j = 0; j < input_array->cols; j++)
 		{
-			if (i == 0 && j != input_array->cols - 1)
-			{
-				std::cout << ptr_arr[i * input_array->cols + j] << " ";
-			}
-			else if (i == input_array->rows - 1 && j == input_array->cols - 1)
+			if (i == input_array->rows - 1 && j == input_array->cols - 1 && i != 0)
 			{
 				std::cout << " " << ptr_arr[i * input_array->cols + j];
 			}
+			else if (i == 0)
+			{
+				if (j != input_array->cols - 1)
+				{
+					std::cout << ptr_arr[i * input_array->cols + j] << " ";
+				}
+				else
+				{
+					std::cout << ptr_arr[i * input_array->cols + j];
+				}
+			}
 			else
 			{
-				std::cout << " " << ptr_arr[i * input_array->cols + j] << " ";
+				std::cout << " " << ptr_arr[i * input_array->cols + j];
 			}
 		}
 		if (i < input_array->rows - 1)
 		{
-			std::cout << std::endl;
+			std::cout << "\n";
 		}
 	}
 	std::cout << "]" << std::endl;
@@ -134,12 +145,12 @@ void find_top2_with_pos_in_row(array<T> *array, int row, T *max1, T *max2, int *
 		exit(EXIT_FAILURE);
 	}
 	T *ptr_row = array->data + row * array->cols;
-	T max_val1 = ptr_row[0] > ptr_row[1] ? ptr_row[0] : ptr_row[1];
-	T max_val2 = ptr_row[0] < ptr_row[1] ? ptr_row[0] : ptr_row[1];
+	T max_val1 = -MIN_INF;
+	T max_val2 = -MIN_INF;
 
 	int pos_val = ptr_row[0] > ptr_row[1] ? 0 : 1;
 
-	for (int i = 2; i < array->cols; i++)
+	for (int i = 0; i < array->cols; i++)
 	{
 		if (ptr_row[i] > max_val1)
 		{

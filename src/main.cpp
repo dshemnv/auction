@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 	TYPE max;
 	max_val(&A, &max);
-	double eps = max / 4;
+	double eps = max / 2;
 
 	clock_t t;
 	t = clock();

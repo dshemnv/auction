@@ -23,6 +23,7 @@ struct assignments
 };
 
 void reset_assignement(array<bool> *array_mask);
+bool assignement_found(array<bool> *agents_mask);
 
 template <typename T = double>
 int idx_max_bid_for_object(array<int> *objects_array, array<T> *bids_array, array<bool> *array_mask, int object, T value)
@@ -79,7 +80,6 @@ void update_assignment(assignments<T> *result, array<int> *object_array, array<T
 				int old_object = result->result[i].object;
 				if (old_agent != -1)
 				{
-					// printf("Replacing agent %d that was assigned to object %d with agent %d\n", old_agent, old_object, i);
 					agents_mask->data[old_agent] = false;
 					objects_mask->data[old_object] = false;
 				}
@@ -108,6 +108,59 @@ void update_prices(assignments<T> *result, array<bool> *array_mask, array<T> *pr
 }
 
 template <typename T = double>
+void forward(array<T> *cost_matrix, array<bool> *array_mask, array<T> *prices, array<bool> *agents_mask, array<bool> *objects_mask, array<T> *values, array<int> *objects_array, array<T> *bids_array, assignments<T> *result, const double eps)
+{
+	//	* Step 1: compute bids for each unassigned agent
+	//  ** - Compute (line - prices)
+	//  ** - Find max and pos of (line - prices)
+	//	** - Compute and store bid: max1 - max2 + eps
+
+	for (int i = 0; i < cost_matrix->rows; i++)
+	{
+		if (agents_mask->data[i] == true)
+		{
+			continue;
+		}
+		for (int j = 0; j < cost_matrix->cols; j++)
+		{
+			values->data[j] = cost_matrix->data[i * cost_matrix->cols + j] - prices->data[j];
+		}
+		T max1, max2;
+		int pos1;
+		find_top2_with_pos_in_row<T>(values, 0, &max1, &max2, &pos1);
+		double current_bid = max1 - max2 + eps;
+		int add_index = idx_max_bid_for_object<T>(objects_array, bids_array, array_mask, pos1, current_bid);
+		if (add_index > 0)
+		{
+			objects_array->data[add_index] = pos1;
+			bids_array->data[add_index] = max1 - max2 + eps;
+			array_mask->data[add_index] = true;
+		}
+		else
+		{
+			if (add_index == -2)
+			{
+				continue;
+			}
+			objects_array->data[i] = pos1;
+			bids_array->data[i] = max1 - max2 + eps;
+			array_mask->data[i] = true;
+		}
+	}
+	// * Step 2: Find best bid for each objet and associated agent
+	// ** - Find best bid and associated index (which is the object)
+	// ** - Update state with new prices and assignment
+	if (result->is_empty == true)
+	{
+		create_first_results<T>(result, objects_array, bids_array, array_mask, objects_mask, agents_mask);
+	}
+	else
+	{
+		update_assignment<T>(result, objects_array, bids_array, array_mask, objects_mask, agents_mask);
+	}
+}
+
+template <typename T = double>
 void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *result)
 {
 	int n_agents = cost_matrix->rows;
@@ -115,15 +168,11 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 
 	array<T> prices;
 	init<T>(&prices, 1, n_objects);
-	array<T> values;
-	init<T>(&values, 1, n_agents);
 
 	array<bool> assigned_agents;
 	init<bool>(&assigned_agents, 1, n_agents);
 	array<bool> assigned_objects;
 	init<bool>(&assigned_objects, 1, n_objects);
-	array<bool> assignement_exists;
-	init<bool>(&assignement_exists, 1, n_agents);
 
 	array<int> agent_top_obj;
 	init<int>(&agent_top_obj, 1, n_agents);
@@ -131,78 +180,33 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 	array<T> agent_top_bid;
 	init<T>(&agent_top_bid, 1, n_agents);
 
+	array<T> values;
+	init<T>(&values, 1, n_agents);
+
+	array<bool> assignement_exists;
+	init<bool>(&assignement_exists, 1, n_agents);
 	int n_loops = 0;
 
 	while (true)
 	{
-		//	* Step 1: compute bids for each unassigned agent
-		//  ** - Compute (line - prices)
-		//  ** - Find max and pos of (line - prices)
-		//	** - Compute and store bid: max1 - max2 + eps
-		for (int i = 0; i < n_agents; i++)
-		{
-			if (assigned_agents.data[i] == true)
-			{
-				continue;
-			}
-			for (int j = 0; j < n_objects; j++)
-			{
-				values.data[j] = cost_matrix->data[i * cost_matrix->cols + j] - prices.data[j];
-			}
-			T max1, max2;
-			int pos1;
-			find_top2_with_pos_in_row<T>(&values, 0, &max1, &max2, &pos1);
-			// printf("  Agent %d : %f %f pos associated to max1 %d\n", i, max1, max2, pos1);
-			int add_index = idx_max_bid_for_object<T>(&agent_top_obj, &agent_top_bid, &assignement_exists, pos1, max1 - max2 + eps);
-			if (add_index > 0)
-			{
-				agent_top_obj.data[add_index] = pos1;
-				agent_top_bid.data[add_index] = max1 - max2 + eps;
-				assignement_exists.data[add_index] = true;
-			}
-			else
-			{
-				if (add_index == -2)
-				{
-					continue;
-				}
-				agent_top_obj.data[i] = pos1;
-				agent_top_bid.data[i] = max1 - max2 + eps;
-				assignement_exists.data[i] = true;
-			}
-		}
-		// * Step 2: Find best bid for each objet and associated agent
-		// ** - Find best bid and associated index (which is the object)
-		// ** - Update state with new prices and assignment
-		if (result->is_empty == true)
-		{
-			create_first_results<T>(result, &agent_top_obj, &agent_top_bid, &assignement_exists, &assigned_objects, &assigned_agents);
-		}
-		else
-		{
-			update_assignment<T>(result, &agent_top_obj, &agent_top_bid, &assignement_exists, &assigned_objects, &assigned_agents);
-		}
+		forward<T>(cost_matrix, &assignement_exists, &prices, &assigned_agents, &assigned_objects, &values, &agent_top_obj, &agent_top_bid, result, eps);
+
 		update_prices<T>(result, &assignement_exists, &prices);
 
-		bool assignment_done = assigned_agents.data[0];
-		for (int i = 1; i < n_objects; i++)
-		{
-			assignment_done = assignment_done && assigned_agents.data[i];
-		}
-		if (assignment_done == true)
+		if (assignement_found(&assigned_agents))
 		{
 			break;
 		}
 		n_loops += 1;
 	}
-	printf("Asignment found in %d loops\n", n_loops);
+	std::cout << "Asignment found in " << n_loops << " loops" << std::endl;
 	delete[] prices.data;
-	delete[] values.data;
 	delete[] assigned_agents.data;
 	delete[] assigned_objects.data;
-	delete[] assignement_exists.data;
 	delete[] agent_top_obj.data;
 	delete[] agent_top_bid.data;
+	delete[] values.data;
+	delete[] assignement_exists.data;
 }
 
 template <typename T = double>
