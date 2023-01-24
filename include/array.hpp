@@ -1,6 +1,5 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
-#define N_MAX 200
 #define ARR_MAX 10000.0
 
 #include <cstdlib>
@@ -9,65 +8,70 @@
 #include <cerrno>
 #include <cmath>
 #include <cassert>
+#include <iostream>
+#include <fstream>
 
 template <typename T = double>
 struct array
 {
 	int rows;
 	int cols;
-	T data[N_MAX];
+	T *data;
 };
 
 template <typename T>
 void print_array(array<T> *input_array)
 {
 	T *ptr_arr = input_array->data;
-	printf("[");
+	std::cout << "[";
 	for (int i = 0; i < input_array->rows; i++)
 	{
 		for (int j = 0; j < input_array->cols; j++)
 		{
 			if (i == 0 && j != input_array->cols - 1)
 			{
-				printf("%.2lf  ", ptr_arr[i * input_array->cols + j]);
+				std::cout << ptr_arr[i * input_array->cols + j] << " ";
 			}
 			else if (i == input_array->rows - 1 && j == input_array->cols - 1)
 			{
-				printf(" %.2lf", ptr_arr[i * input_array->cols + j]);
+				std::cout << " " << ptr_arr[i * input_array->cols + j];
 			}
 			else
 			{
-				printf(" %.2lf ", ptr_arr[i * input_array->cols + j]);
+				std::cout << " " << ptr_arr[i * input_array->cols + j] << " ";
 			}
 		}
 		if (i < input_array->rows - 1)
 		{
-			printf("\n");
+			std::cout << std::endl;
 		}
 	}
-	printf("]\n");
+	std::cout << "]" << std::endl;
 }
 
-template <typename T>
+template <typename T = double>
 void set_size(const int rows, const int cols, array<T> *array)
 {
 	array->cols = cols;
 	array->rows = rows;
+	array->data = new T[rows * cols];
 }
 
 template <typename T = double>
 void read_array(int rows, int cols, const char *array_file, array<T> *output_array)
 {
-	FILE *file;
+	std::ifstream file;
 	T tmp_val;
+
+	output_array->data = new T[rows * cols];
 
 	output_array->cols = cols;
 	output_array->rows = rows;
 
-	file = fopen(array_file, "r");
-	if (file == NULL)
+	file.open(array_file);
+	if (!file.is_open())
 	{
-		perror("Incorrect file");
+		std::cerr << "Incorrect file path:" << array_file << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -75,11 +79,29 @@ void read_array(int rows, int cols, const char *array_file, array<T> *output_arr
 	{
 		for (int j = 0; j < cols; j++)
 		{
-			fscanf(file, "%lf", &tmp_val);
+			file >> tmp_val;
 			output_array->data[i * cols + j] = tmp_val;
 		}
 	}
-	fclose(file);
+	file.close();
+}
+
+template <typename T = double>
+void max_val(array<T> *array, T *max)
+{
+	T *ptr_array = array->data;
+	T max_val = array->data[0];
+	for (int i = 0; i < array->rows; i++)
+	{
+		for (int j = 0; j < array->cols; j++)
+		{
+			if (ptr_array[i * array->cols + j] > max_val)
+			{
+				max_val = ptr_array[i * array->cols + j];
+			}
+		}
+	}
+	*max = max_val;
 }
 
 template <typename T = double>

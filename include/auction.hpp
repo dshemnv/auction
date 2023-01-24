@@ -19,7 +19,7 @@ struct assignments
 {
 	bool is_empty;
 	int size;
-	assignment<T> result[N_MAX];
+	assignment<T> *result;
 };
 
 void reset_assignement(array<bool> *array_mask);
@@ -149,9 +149,9 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 			{
 				values.data[j] = cost_matrix->data[i * cost_matrix->cols + j] - prices.data[j];
 			}
-			double max1, max2;
+			T max1, max2;
 			int pos1;
-			find_top2_with_pos_in_row(&values, 0, &max1, &max2, &pos1);
+			find_top2_with_pos_in_row<T>(&values, 0, &max1, &max2, &pos1);
 			// printf("  Agent %d : %f %f pos associated to max1 %d\n", i, max1, max2, pos1);
 			int add_index = idx_max_bid_for_object<T>(&agent_top_obj, &agent_top_bid, &assignement_exists, pos1, max1 - max2 + eps);
 			if (add_index > 0)
@@ -196,15 +196,22 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 		n_loops += 1;
 	}
 	printf("Asignment found in %d loops\n", n_loops);
+	delete[] prices.data;
+	delete[] values.data;
+	delete[] assigned_agents.data;
+	delete[] assigned_objects.data;
+	delete[] assignement_exists.data;
+	delete[] agent_top_obj.data;
+	delete[] agent_top_bid.data;
 }
 
 template <typename T = double>
-void assignements_to_arrays(assignments<T> *results, array<double> *agent_to_object, array<double> *object_to_agent)
+void assignements_to_arrays(assignments<T> *results, array<T> *agent_to_object, array<T> *object_to_agent)
 {
 	assert(!results->is_empty);
 	int agent, object;
-	init<double>(agent_to_object, 1, results->size);
-	init<double>(object_to_agent, 1, results->size);
+	init<T>(agent_to_object, 1, results->size);
+	init<T>(object_to_agent, 1, results->size);
 
 	for (int i = 0; i < results->size; i++)
 	{
