@@ -60,6 +60,43 @@ void print_array(array<T> *input_array)
 	std::cout << "]" << std::endl;
 }
 
+template <>
+inline void print_array<int>(array<int> *input_array)
+{
+	int *ptr_arr = input_array->data;
+	std::cout << "[";
+	for (int i = 0; i < input_array->rows; i++)
+	{
+		for (int j = 0; j < input_array->cols; j++)
+		{
+			if (i == input_array->rows - 1 && j == input_array->cols - 1 && i != 0)
+			{
+				std::cout << " " << ptr_arr[i * input_array->cols + j];
+			}
+			else if (i == 0)
+			{
+				if (j != input_array->cols - 1)
+				{
+					std::cout << ptr_arr[i * input_array->cols + j] << " ";
+				}
+				else
+				{
+					std::cout << ptr_arr[i * input_array->cols + j];
+				}
+			}
+			else
+			{
+				std::cout << " " << ptr_arr[i * input_array->cols + j];
+			}
+		}
+		if (i < input_array->rows - 1)
+		{
+			std::cout << "\n";
+		}
+	}
+	std::cout << "]" << std::endl;
+}
+
 template <typename T = double>
 void set_size(const int rows, const int cols, array<T> *array)
 {

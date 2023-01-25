@@ -80,13 +80,13 @@ int main(int argc, char *argv[])
 	double timing = (double)t / CLOCKS_PER_SEC;
 	cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
 
-	array<TYPE> agent_to_object;
-	array<TYPE> obj_to_agent;
+	array<int> agent_to_object;
+	array<int> obj_to_agent;
 
 	assignements_to_arrays<TYPE>(&result, &agent_to_object, &obj_to_agent);
 	if (show == 1)
 	{
-		print_array<TYPE>(&agent_to_object);
+		print_array<int>(&agent_to_object);
 	}
 	delete[] A.data;
 	delete[] result.result;

@@ -3,8 +3,9 @@
 
 #include <cstdlib>
 #include <cstdio>
-#include "array.hpp"
 #include <ctime>
+
+#include "array.hpp"
 
 template <typename T = double>
 struct assignment
@@ -168,6 +169,8 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 
 	array<T> prices;
 	init<T>(&prices, 1, n_objects);
+	array<T> profits;
+	init<T>(&profits, n_agents, 1);
 
 	array<bool> assigned_agents;
 	init<bool>(&assigned_agents, 1, n_agents);
@@ -210,12 +213,12 @@ void solve_jacobi(array<T> *cost_matrix, const double eps, assignments<T> *resul
 }
 
 template <typename T = double>
-void assignements_to_arrays(assignments<T> *results, array<T> *agent_to_object, array<T> *object_to_agent)
+void assignements_to_arrays(assignments<T> *results, array<int> *agent_to_object, array<int> *object_to_agent)
 {
 	assert(!results->is_empty);
 	int agent, object;
-	init<T>(agent_to_object, 1, results->size);
-	init<T>(object_to_agent, 1, results->size);
+	init<int>(agent_to_object, 1, results->size);
+	init<int>(object_to_agent, 1, results->size);
 
 	for (int i = 0; i < results->size; i++)
 	{
