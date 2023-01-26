@@ -1,9 +1,9 @@
 #include "array.hpp"
 #include "auction.hpp"
-#include "getopt.h"
-#include "string"
 #include <cstdio>
 #include <cstdlib>
+#include <getopt.h>
+#include <string>
 
 #define TYPE double
 using namespace std;
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
         cout << "Loaded array:" << endl;
         print_array(&A);
     }
+    // while (1) {
 
     assignments<TYPE> result;
     assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
@@ -63,10 +64,11 @@ int main(int argc, char *argv[]) {
 
     clock_t t;
     t = clock();
-    solve_jacobi(&A, 0.1, &result);
+    solve_jacobi<TYPE>(&A, 0.01, &result);
     t = clock() - t;
 
     double timing = (double)t / CLOCKS_PER_SEC;
+    cout << setprecision(4);
     cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
 
     array<int> agent_to_object;
@@ -79,9 +81,10 @@ int main(int argc, char *argv[]) {
     if (show == 1) {
         print_array<int>(&agent_to_object);
     }
-    delete[] A.data;
     delete[] result.result;
     delete[] agent_to_object.data;
     delete[] obj_to_agent.data;
+    // }
+    delete[] A.data;
     return EXIT_SUCCESS;
 }

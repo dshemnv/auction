@@ -157,7 +157,7 @@ void find_top2_with_pos_in_row(array<T> *input_array, int row, T *max1, T *max2,
             max_val2 = ptr_row[i];
         }
     }
-    assert(max_val1 > max_val2);
+    assert(max_val1 > max_val2 || max_val2 == -MIN_INF);
     *max1 = max_val1;
     *max2 = max_val2;
     *pos_max = pos_val;
@@ -208,7 +208,7 @@ void find_top2_with_pos_in_col(array<T> *input_array, int col, T *max1, T *max2,
     // std::cout << "Treating column: " << col << std::endl;
     // std::cout << "Max 1: " << max_val1 << " Max 2: " << max_val2 <<
     // std::endl;
-    assert(max_val1 > max_val2);
+    assert(max_val1 > max_val2 || max_val2 == -MIN_INF);
     *max1 = max_val1;
     *max2 = max_val2;
     *pos1 = pos_val1;
