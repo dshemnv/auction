@@ -13,21 +13,24 @@ int main(int argc, char *argv[]) {
         {"rows", required_argument, NULL, 'r'},
         {"cols", required_argument, NULL, 'c'},
         {"array", required_argument, NULL, 'i'},
+        {"epsilon", required_argument, NULL, 'e'},
         {"show", no_argument, &show, 1}};
 
     if (argc < 3) {
         cerr << "Usage: \n"
-             << "\t" << argv[0] << " -r rows -c cols -i input_file" << endl;
+             << "\t" << argv[0] << " -r rows -c cols -i input_file -e epsilon"
+             << endl;
         exit(EXIT_FAILURE);
     }
 
     int n_agents = 0;
     int n_objects = 0;
+    double epsilon = 0;
     const char *path = NULL;
 
     int c;
     int option_index = 0;
-    while ((c = getopt_long(argc, argv, "r:c:i:", long_options,
+    while ((c = getopt_long(argc, argv, "r:c:i:e:", long_options,
                             &option_index)) != -1) {
         switch (c) {
         case ('r'):
@@ -39,6 +42,8 @@ int main(int argc, char *argv[]) {
         case ('i'):
             path = optarg;
             break;
+        case ('e'):
+            epsilon = atof(optarg);
         default:
             break;
         }
@@ -64,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     clock_t t;
     t = clock();
-    solve_jacobi<TYPE>(&A, 0.01, &result);
+    solve_jacobi<TYPE>(&A, epsilon, &result);
     t = clock() - t;
 
     double timing = (double)t / CLOCKS_PER_SEC;

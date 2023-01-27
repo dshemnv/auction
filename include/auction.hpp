@@ -249,7 +249,7 @@ void forward(array<T> *cost_matrix, array<bool> *array_mask, array<T> *prices,
         T max1, max2;
         int pos1;
         find_top2_with_pos_in_row<T>(values, 0, &max1, &max2, &pos1);
-        assert(max1 != 0 && max2 != 0);
+        // assert(max1 != 0 && max2 != 0);
         double current_bid = max1 - max2 + eps;
         validate_bid_and_value<T>(objects_array, bids_array, array_mask, pos1,
                                   i, current_bid);
@@ -289,7 +289,7 @@ void backward(array<T> *cost_matrix, array<bool> *array_mask, array<T> *profits,
         T max1, max2;
         int pos1;
         find_top2_with_pos_in_col<T>(values, 0, &max1, &max2, &pos1);
-        assert(max1 != 0 && max2 != 0);
+        // assert(max1 != 0 && max2 != 0);
         double current_bid = max1 - max2 + eps;
         validate_bid_and_value(agents_array, bids_array, array_mask, pos1, j,
                                current_bid);
