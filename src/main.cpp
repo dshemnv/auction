@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
     array<int> agent_to_object;
     array<int> obj_to_agent;
 
-    init<int>(&agent_to_object, 1, result.size);
-    init<int>(&obj_to_agent, 1, result.size);
+    init<int>(&agent_to_object, 1, result.size, -1);
+    init<int>(&obj_to_agent, 1, result.size, -1);
 
     assignements_to_arrays<TYPE>(&result, &agent_to_object, &obj_to_agent);
     if (show == 1) {

@@ -4,7 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-
+#define NO_REPLACE -2
+#define NOTHING_FOUND -1
 #include "array.hpp"
 
 template <typename T = double> struct assignment {
@@ -28,34 +29,49 @@ void reset_assignement(array<bool> *array_mask);
 bool assignement_found(array<bool> *agents_mask);
 
 template <typename T = double>
-int get_max_idx_in_array_for_value(array<int> *input_array,
-                                   array<T> *bids_array,
-                                   array<bool> *array_mask, int compare_value,
-                                   T bid_value) {
+void validate_bid_and_value(array<int> *input_array, array<T> *bids_array,
+                            array<bool> *array_mask, int value, int new_index,
+                            T bid) {
+
+    bool found = false;
     for (int i = 0; i < array_mask->cols; i++) {
         if (array_mask->data[i] == false) {
             continue;
-        } else if (input_array->data[i] == compare_value) {
-            if (bids_array->data[i] > bid_value) {
-                return -2;
+        } else if (input_array->data[i] == value) {
+            if (bid > bids_array->data[i]) {
+                bids_array->data[i] = -1;
+                array_mask->data[i] = false;
+                input_array->data[i] = -1;
+                found = true;
+            } else {
+                return;
             }
-            return i;
+        }
+        if (found) {
+            break;
         }
     }
-    return -1;
+    bids_array->data[new_index] = bid;
+    array_mask->data[new_index] = true;
+    input_array->data[new_index] = value;
+    return;
 }
 
 template <typename T = double>
 void create_first_results(assignments<T> *result, array<int> *objects_array,
                           array<T> *bids_array, array<bool> *array_mask,
                           array<bool> *objects_mask, array<bool> *agents_mask) {
+
     for (int i = 0; i < array_mask->cols; i++) {
+        assert((array_mask->data[i] == 0) || (array_mask->data[i] == 1));
         if (array_mask->data[i]) {
+            int object_number = objects_array->data[i];
+            T bid = bids_array->data[i];
             result->result[i].agent = i;
-            result->result[i].object = objects_array->data[i];
-            result->result[i].value = bids_array->data[i];
+            result->result[i].object = object_number;
+            result->result[i].value = bid;
             agents_mask->data[i] = true;
-            objects_mask->data[objects_array->data[i]] = true;
+            objects_mask->data[object_number] = true;
         }
     }
     result->is_empty = false;
@@ -66,33 +82,36 @@ void update_object_assignment(assignments<T> *result, array<int> *object_array,
                               array<T> *bids_array, array<bool> *array_mask,
                               array<bool> *objects_mask,
                               array<bool> *agents_mask) {
-
-    int old_agent;
-    int old_object;
     int available_idx;
     for (int j = 0; j < array_mask->cols; j++) { // Mask of assigned objects
+        bool updated = false;
+        T bid = bids_array->data[j];
+        int new_object = object_array->data[j];
         if (!array_mask->data[j]) {
             continue;
         }
         for (int i = 0; i < result->size; i++) {
             if (object_array->data[j] == result->result[i].object) {
-                old_agent = result->result[i].agent;
-                old_object = result->result[i].object;
+                int old_agent = result->result[i].agent;
+                int old_object = result->result[i].object;
                 agents_mask->data[old_agent] = false;
                 objects_mask->data[old_object] = false;
 
-                result->result[i].agent = -1;
-                result->result[i].object = -1;
-                result->result[i].value = -1;
+                result->result[i].agent = j;
+                result->result[i].object = new_object;
+                result->result[i].value = bid;
+                updated = true;
             }
         }
-        find_available_idx(result, &available_idx);
-        assert(available_idx != -1);
-        result->result[available_idx].agent = j;
-        result->result[available_idx].object = object_array->data[j];
-        result->result[available_idx].value = bids_array->data[j];
+        if (!updated) {
+            find_available_idx(result, &available_idx);
+            assert(available_idx != -1);
+            result->result[available_idx].agent = j;
+            result->result[available_idx].object = object_array->data[j];
+            result->result[available_idx].value = bids_array->data[j];
+        }
         agents_mask->data[j] = true;
-        objects_mask->data[object_array->data[j]] = true;
+        objects_mask->data[new_object] = true;
     }
 }
 
@@ -113,32 +132,35 @@ void update_agent_assignment(assignments<T> *result, array<int> *agent_array,
                              array<T> *bids_array, array<bool> *array_mask,
                              array<bool> *objects_mask,
                              array<bool> *agents_mask) {
-    int i, j;
     int available_idx;
-    int old_agent;
-    int old_object;
-    for (j = 0; j < array_mask->cols; j++) {
+    for (int j = 0; j < array_mask->cols; j++) {
+        bool updated = false;
+        T bid = bids_array->data[j];
+        int new_agent = agent_array->data[j];
         if (!array_mask->data[j]) {
             continue;
         }
-        for (i = 0; i < result->size; i++) {
+        for (int i = 0; i < result->size; i++) {
             if (agent_array->data[j] == result->result[i].agent) {
-                old_agent = result->result[i].agent;
-                old_object = result->result[i].object;
+                int old_agent = result->result[i].agent;
+                int old_object = result->result[i].object;
                 agents_mask->data[old_agent] = false;
                 objects_mask->data[old_object] = false;
 
-                result->result[i].agent = -1;
-                result->result[i].object = -1;
-                result->result[i].value = -1;
+                result->result[i].agent = new_agent;
+                result->result[i].object = j;
+                result->result[i].value = bid;
+                updated = true;
             }
         }
-        find_available_idx(result, &available_idx);
-        assert(available_idx != -1);
-        result->result[available_idx].agent = agent_array->data[j];
-        result->result[available_idx].object = j;
-        result->result[available_idx].value = bids_array->data[j];
-        agents_mask->data[agent_array->data[j]] = true;
+        if (!updated) {
+            find_available_idx(result, &available_idx);
+            assert(available_idx != -1);
+            result->result[available_idx].agent = new_agent;
+            result->result[available_idx].object = j;
+            result->result[available_idx].value = bid;
+        }
+        agents_mask->data[new_agent] = true;
         objects_mask->data[j] = true;
     }
 }
@@ -220,28 +242,17 @@ void forward(array<T> *cost_matrix, array<bool> *array_mask, array<T> *prices,
         if (agents_mask->data[i] == true) {
             continue;
         }
-        for (int j = 0; j < cost_matrix->cols; j++) {
+        for (int j = 0; j < values->cols; j++) {
             values->data[j] =
                 cost_matrix->data[i * cost_matrix->cols + j] - prices->data[j];
         }
         T max1, max2;
         int pos1;
         find_top2_with_pos_in_row<T>(values, 0, &max1, &max2, &pos1);
+        assert(max1 != 0 && max2 != 0);
         double current_bid = max1 - max2 + eps;
-        int add_index = get_max_idx_in_array_for_value<T>(
-            objects_array, bids_array, array_mask, pos1, current_bid);
-        if (add_index > 0) {
-            objects_array->data[add_index] = pos1;
-            bids_array->data[add_index] = current_bid;
-            array_mask->data[add_index] = true;
-        } else {
-            if (add_index == -2) {
-                continue;
-            }
-            objects_array->data[i] = pos1;
-            bids_array->data[i] = current_bid;
-            array_mask->data[i] = true;
-        }
+        validate_bid_and_value<T>(objects_array, bids_array, array_mask, pos1,
+                                  i, current_bid);
     }
     // * Step 2: Find best bid for each objet and associated agent
     // ** - Find best bid and associated index (which is the object)
@@ -278,21 +289,10 @@ void backward(array<T> *cost_matrix, array<bool> *array_mask, array<T> *profits,
         T max1, max2;
         int pos1;
         find_top2_with_pos_in_col<T>(values, 0, &max1, &max2, &pos1);
+        assert(max1 != 0 && max2 != 0);
         double current_bid = max1 - max2 + eps;
-        int add_index = get_max_idx_in_array_for_value<T>(
-            agents_array, bids_array, array_mask, pos1, current_bid);
-        if (add_index > 0) {
-            agents_array->data[add_index] = pos1;
-            bids_array->data[add_index] = max1 - max2 + eps;
-            array_mask->data[add_index] = true;
-        } else {
-            if (add_index == -2) {
-                continue;
-            }
-            agents_array->data[j] = pos1;
-            bids_array->data[j] = max1 - max2 + eps;
-            array_mask->data[j] = true;
-        }
+        validate_bid_and_value(agents_array, bids_array, array_mask, pos1, j,
+                               current_bid);
     }
     // * Step 2: Find best bid for each agent and associated object
     // ** - Find best bid and associated index (which is the agent)
@@ -309,39 +309,39 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     int n_objects = cost_matrix->cols;
 
     array<T> prices;
-    init<T>(&prices, 1, n_objects);
+    init<T>(&prices, 1, n_objects, 0);
     array<T> profits;
-    init<T>(&profits, n_agents, 1);
+    init<T>(&profits, n_agents, 1, 0);
 
     array<bool> assigned_agents;
-    init<bool>(&assigned_agents, 1, n_agents);
+    init<bool>(&assigned_agents, 1, n_agents, false);
     array<bool> assigned_objects;
-    init<bool>(&assigned_objects, 1, n_objects);
+    init<bool>(&assigned_objects, 1, n_objects, false);
 
     array<int> agent_top_obj;
-    init<int>(&agent_top_obj, 1, n_agents);
+    init<int>(&agent_top_obj, 1, n_agents, -1);
     array<T> agent_top_bid;
-    init<T>(&agent_top_bid, 1, n_agents);
+    init<T>(&agent_top_bid, 1, n_agents, -1);
 
     array<int> obj_top_agent;
-    init<int>(&obj_top_agent, 1, n_objects);
+    init<int>(&obj_top_agent, 1, n_objects, -1);
     array<T> obj_top_bid;
-    init<T>(&obj_top_bid, 1, n_objects);
+    init<T>(&obj_top_bid, 1, n_objects, -1);
 
     array<T> values_forward;
-    init<T>(&values_forward, 1, n_objects);
+    init<T>(&values_forward, 1, n_objects, 0);
     array<T> values_backward;
-    init<T>(&values_backward, n_agents, 1);
+    init<T>(&values_backward, n_agents, 1, 0);
 
     array<bool> assigned_rows;
-    init<bool>(&assigned_rows, 1, n_agents);
+    init<bool>(&assigned_rows, 1, n_agents, false);
     array<bool> assigned_cols;
-    init<bool>(&assigned_cols, 1, n_objects);
+    init<bool>(&assigned_cols, 1, n_objects, false);
 
     // array<int> agent_to_object;
     // array<int> object_to_agent;
-    // init<int>(&agent_to_object, 1, result->size);
-    // init<int>(&object_to_agent, 1, result->size);
+    // init<int>(&agent_to_object, 1, result->size, -1);
+    // init<int>(&object_to_agent, 1, result->size, -1);
 
     int n_loops = 0;
 
@@ -350,19 +350,23 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
                    &assigned_objects, &values_forward, &agent_top_obj,
                    &agent_top_bid, result, eps);
 
-        update_prices<T>(result, &assigned_rows, &prices);
+        // update_prices<T>(result, &assigned_rows, &prices);
         // std::cout << "Loop: " << n_loops << std::endl;
         // assignements_to_arrays(result, &agent_to_object, &object_to_agent);
         // std::cout << "Assignement after forward\n";
         // print_array(&agent_to_object);
+        // std::cout << "Prices\n";
+        // print_array(&prices);
 
         update_profits_after_forward<T>(result, cost_matrix, &profits, &prices,
                                         &assigned_rows);
+        // std::cout << "Profits after forward\n";
+        // print_array(&profits);
 
         if (assignement_found(&assigned_agents)) {
             break;
         }
-
+        // FIXME: Backward is not working...
         backward<T>(cost_matrix, &assigned_cols, &profits, &assigned_agents,
                     &assigned_objects, &values_backward, &obj_top_agent,
                     &obj_top_bid, result, eps);
@@ -372,6 +376,8 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
         // assignements_to_arrays(result, &agent_to_object, &object_to_agent);
         // std::cout << "Assignement after backward\n";
         // print_array(&agent_to_object);
+        // std::cout << "Profits\n";
+        // print_array(&profits);
 
         update_prices_after_forward<T>(result, cost_matrix, &profits, &prices,
                                        &assigned_cols);
@@ -381,8 +387,16 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
         }
 
         n_loops += 1;
-        reset_assignement(&assigned_rows);
-        reset_assignement(&assigned_cols);
+        reset_array<bool>(&assigned_rows, false);
+        reset_array<bool>(&assigned_cols, false);
+        reset_array<T>(&agent_top_bid, -1);
+        reset_array<int>(&agent_top_obj, -1);
+        reset_array<T>(&obj_top_bid, -1);
+        reset_array<int>(&obj_top_agent, -1);
+        reset_array<T>(&values_backward, 0);
+        reset_array<T>(&values_forward, 0);
+        // reset_array<int>(&agent_to_object, -1);
+        // reset_array<int>(&object_to_agent, -1);
     }
     std::cout << "Asignment found in " << n_loops << " loops" << std::endl;
     delete[] profits.data;

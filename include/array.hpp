@@ -19,6 +19,13 @@ template <typename T = double> struct array {
     T *data;
 };
 
+template <typename T> void reset_array(array<T> *input_array, const T val) {
+    int indx = input_array->cols == 1 ? input_array->rows : input_array->cols;
+    for (int i = 0; i < indx; i++) {
+        input_array->data[i] = val;
+    }
+}
+
 template <typename T> void print_array(array<T> *input_array) {
     T *ptr_arr = input_array->data;
     std::cout << std::fixed;
@@ -127,8 +134,7 @@ template <typename T = double> void fill(array<T> *arr, const T val) {
 }
 
 template <typename T = double>
-void init(array<T> *array, const int rows, const int cols) {
-    T fill_val = 0;
+void init(array<T> *array, const int rows, const int cols, const T fill_val) {
     set_size(rows, cols, array);
     fill<T>(array, fill_val);
 }
@@ -157,6 +163,7 @@ void find_top2_with_pos_in_row(array<T> *input_array, int row, T *max1, T *max2,
             max_val2 = ptr_row[i];
         }
     }
+    max_val2 = (max_val1 == max_val2) ? -MIN_INF : max_val2;
     assert(max_val1 > max_val2 || max_val2 == -MIN_INF);
     *max1 = max_val1;
     *max2 = max_val2;
@@ -208,6 +215,7 @@ void find_top2_with_pos_in_col(array<T> *input_array, int col, T *max1, T *max2,
     // std::cout << "Treating column: " << col << std::endl;
     // std::cout << "Max 1: " << max_val1 << " Max 2: " << max_val2 <<
     // std::endl;
+    max_val2 = (max_val1 == max_val2) ? -MIN_INF : max_val2;
     assert(max_val1 > max_val2 || max_val2 == -MIN_INF);
     *max1 = max_val1;
     *max2 = max_val2;
