@@ -86,15 +86,9 @@ void set_size(const int rows, const int cols, array<T> *array) {
 }
 
 template <typename T = double>
-void read_array(int rows, int cols, const char *array_file,
-                array<T> *output_array) {
+void read_array(const char *array_file, array<T> *output_array) {
     std::ifstream file;
     T tmp_val;
-
-    output_array->data = new T[rows * cols];
-
-    output_array->cols = cols;
-    output_array->rows = rows;
 
     file.open(array_file);
     if (!file.is_open()) {
@@ -102,10 +96,10 @@ void read_array(int rows, int cols, const char *array_file,
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
+    for (int i = 0; i < output_array->rows; i++) {
+        for (int j = 0; j < output_array->cols; j++) {
             file >> tmp_val;
-            output_array->data[i * cols + j] = tmp_val;
+            output_array->data[i * output_array->cols + j] = tmp_val;
         }
     }
     file.close();

@@ -50,8 +50,9 @@ int main(int argc, char *argv[]) {
     }
 
     array<TYPE> A;
+    init<TYPE>(&A, n_agents, n_objects, 0);
 
-    read_array(n_agents, n_objects, path, &A);
+    read_array<TYPE>(path, &A);
     if (show == 1) {
         cout << "Loaded array:" << endl;
         print_array(&A);
@@ -86,9 +87,9 @@ int main(int argc, char *argv[]) {
     if (show == 1) {
         print_array<int>(&agent_to_object);
     }
-    delete[] result.result;
     delete[] agent_to_object.data;
-    delete[] obj_to_agent.data;
+    // delete[] obj_to_agent.data;
+    delete[] result.result;
     // }
     delete[] A.data;
     return EXIT_SUCCESS;

@@ -350,7 +350,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
                    &assigned_objects, &values_forward, &agent_top_obj,
                    &agent_top_bid, result, eps);
 
-        // update_prices<T>(result, &assigned_rows, &prices);
+        update_prices<T>(result, &assigned_rows, &prices);
         // std::cout << "Loop: " << n_loops << std::endl;
         // assignements_to_arrays(result, &agent_to_object, &object_to_agent);
         // std::cout << "Assignement after forward\n";
