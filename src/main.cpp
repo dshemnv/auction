@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
     assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
     result.is_empty = true;
     result.size = n_agents;
+    result.n_assignment = 0;
     result.result = new assignment<TYPE>[result.size];
     for (int i = 0; i < result.size; i++) {
         result.result[i] = assig;
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]) {
         print_array<int>(&agent_to_object);
     }
     delete[] agent_to_object.data;
-    // delete[] obj_to_agent.data;
+    delete[] obj_to_agent.data;
     delete[] result.result;
     // }
     delete[] A.data;

@@ -1,5 +1,5 @@
 TARGETAPP := auction
-CC := clang++
+CC := g++
 
 IDIR := include
 LDIR := lib
@@ -12,7 +12,7 @@ OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
 LIBS := -lm
 
-CFLAGS := $(IFLAGS) -Wall -MMD -MP -Ofast -march=native -mtune=native
+CFLAGS := $(IFLAGS) -Wall -MMD -MP -Ofast -fPIC -march=native -mtune=native
 VALFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes 
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)
@@ -28,10 +28,8 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CXXFLAGS) -c $< -o $@
 
-$(BUILDDIR)/cauction_lib.so:
+$(BUILDDIR)/cauction_lib.so: $(OBJS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CXXFLAGS) -c $(SRCDIR)/cauction.cpp -o $(BUILDDIR)/cauction.o
-	$(CC) $(CFLAGS) $(CXXFLAGS) -c $(SRCDIR)/auction.cpp -o $(BUILDDIR)/auction.o
 	$(CC) -shared -o $@ $(BUILDDIR)/cauction.o $(BUILDDIR)/auction.o 
 	@echo "Lib created"
 

@@ -105,6 +105,28 @@ void read_array(const char *array_file, array<T> *output_array) {
     file.close();
 }
 
+template <typename T = double>
+void dump_array(const char *output_file, array<T> *input_array) {
+    std::ofstream file;
+
+    file.open(output_file);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < input_array->rows; i++) {
+        for (int j = 0; j < input_array->cols; j++) {
+            file << input_array->data[i * input_array->cols + j];
+            file << " ";
+        }
+        if (i <= input_array->rows - 1) {
+            file << "\n";
+        }
+    }
+    file.close();
+}
+
 template <typename T = double> void max_val(array<T> *array, T *max) {
     T *ptr_array = array->data;
     T max_val = array->data[0];
@@ -193,9 +215,11 @@ void find_top2_with_pos_in_col(array<T> *input_array, int col, T *max1, T *max2,
                        ? col
                        : input_array->cols + col;
 
-    T max_val1 = -MIN_INF;
-    T max_val2 = -MIN_INF;
+    T max_val1 = MIN_INF;
+    T max_val2 = MIN_INF;
 
+    // puts("[C]: Searching top2 values in array");
+    // print_array(input_array);
     for (int i = 0; i < input_array->rows; i++) {
         if (ptr_col[i * input_array->cols + col] > max_val1) {
             max_val2 = max_val1;
@@ -209,8 +233,8 @@ void find_top2_with_pos_in_col(array<T> *input_array, int col, T *max1, T *max2,
     // std::cout << "Treating column: " << col << std::endl;
     // std::cout << "Max 1: " << max_val1 << " Max 2: " << max_val2 <<
     // std::endl;
-    max_val2 = (max_val1 == max_val2) ? -MIN_INF : max_val2;
-    assert(max_val1 > max_val2 || max_val2 == -MIN_INF);
+    max_val2 = (max_val1 == max_val2) ? MIN_INF : max_val2;
+    assert(max_val1 > max_val2 || max_val2 == MIN_INF);
     *max1 = max_val1;
     *max2 = max_val2;
     *pos1 = pos_val1;

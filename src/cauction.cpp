@@ -29,17 +29,22 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
                 cost_matrix->data[i * cols + j];
         }
     }
+    // puts("[C]: Converted input array to array<double>");
     // Init results
     assignments<double> result;
     assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
     result.size = rows;
     result.is_empty = true;
+    result.n_assignment = 0;
     result.result = new (std::nothrow) assignment<double>[result.size];
     for (int i = 0; i < result.size; i++) {
         result.result[i] = assig;
     }
+    // puts("[C]: Initialized result structure");
     // Solve using solve_jacobi
+    // puts("[C]: Start solving");
     solve_jacobi(&cpp_cost_matrix, eps, &result);
+    // puts("[C]: End solving");
     // Convert assignments<double> to assignment_result
     int *agent_to_obj = (int *)malloc(result.size * sizeof(int));
     int *obj_to_agent = (int *)malloc(result.size * sizeof(int));
@@ -51,6 +56,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
             obj_to_agent[object] = agent;
         }
     }
+    // puts("[C]: Converted result into arrays");
 
     assignment_result *res =
         (assignment_result *)malloc(sizeof(assignment_result));
@@ -58,6 +64,8 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
     res->len = result.size;
     res->agent_to_object = agent_to_obj;
     res->object_to_agent = obj_to_agent;
+
+    // puts("[C]: Populated result");
 
     return res;
 }
