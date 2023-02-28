@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
     array<TYPE> A;
     init<TYPE>(&A, n_agents, n_objects, 0);
 
+    bool square = n_agents != n_objects ? false : true;
+
     read_array<TYPE>(path, &A);
     if (show == 1) {
         cout << "Loaded array:" << endl;
@@ -81,12 +83,14 @@ int main(int argc, char *argv[]) {
     array<int> agent_to_object;
     array<int> obj_to_agent;
 
-    init<int>(&agent_to_object, 1, result.size, -1);
-    init<int>(&obj_to_agent, 1, result.size, -1);
+    init<int>(&agent_to_object, 1, result.n_assignment, -1);
+    init<int>(&obj_to_agent, 1, result.n_assignment, -1);
 
-    assignements_to_arrays<TYPE>(&result, &agent_to_object, &obj_to_agent);
+    assignements_to_arrays<TYPE>(&result, &agent_to_object, &obj_to_agent,
+                                 square);
     if (show == 1) {
         print_array<int>(&agent_to_object);
+        print_array<int>(&obj_to_agent);
     }
     delete[] agent_to_object.data;
     delete[] obj_to_agent.data;

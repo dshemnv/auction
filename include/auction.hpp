@@ -421,6 +421,10 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     int n_backward = 0;
 
     while (true) {
+        if (n_loops > MAX_ITER) {
+            dump_array("dumped_array_v2.txt", cost_matrix);
+            break;
+        }
         forward<T>(cost_matrix, &assigned_rows, &prices, &assigned_agents,
                    &assigned_objects, &values_forward, &agent_top_obj,
                    &agent_top_bid, result, eps);
@@ -441,14 +445,15 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
         // print_array(&profits);
 
         // printf("LOOP %d\n", n_loops);
-        bool checked =
+        bool checked = // false;
             check_eCS<T>(&profits, &prices, cost_matrix, eps, result);
         // if (!checked) {
         //     printf("eCS not verified.\n");
         //     exit(EXIT_FAILURE);
         // }
+        n_loops += 1;
 
-        if (assignement_found(&assigned_agents)) {
+        if (assignement_found(&assigned_objects)) {
             // printf("Assignement took %d forward loops and %d backward
             // loops.\n",
             //    n_forward, n_backward);
@@ -475,30 +480,23 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
 
             update_prices_after_backward<T>(result, cost_matrix, &profits,
                                             &prices, &assigned_cols);
+
+            if (assignement_found(&assigned_objects)) {
+                // printf("Assignement took %d forward loops and %d backward
+                // loops.\n",
+                //        n_forward, n_backward);
+                break;
+            }
         }
 
-        if (assignement_found(&assigned_agents)) {
-            // printf("Assignement took %d forward loops and %d backward
-            // loops.\n",
-            //        n_forward, n_backward);
-            break;
-        }
-
-        n_loops += 1;
-        reset_array<bool>(&assigned_rows, false);
-        reset_array<bool>(&assigned_cols, false);
-        reset_array<T>(&agent_top_bid, -1);
-        reset_array<int>(&agent_top_obj, -1);
-        reset_array<T>(&obj_top_bid, -1);
-        reset_array<int>(&obj_top_agent, -1);
-        reset_array<T>(&values_backward, 0);
-        reset_array<T>(&values_forward, 0);
-        reset_array<int>(&agent_to_object, -1);
-        reset_array<int>(&object_to_agent, -1);
-        if (n_loops > MAX_ITER) {
-            dump_array("dumped_array_v2.txt", cost_matrix);
-            break;
-        }
+        // reset_array<T>(&agent_top_bid, -1);
+        // reset_array<int>(&agent_top_obj, -1);
+        // reset_array<T>(&obj_top_bid, -1);
+        // reset_array<int>(&obj_top_agent, -1);
+        // reset_array<T>(&values_backward, 0);
+        // reset_array<T>(&values_forward, 0);
+        // reset_array<int>(&agent_to_object, -1);
+        // reset_array<int>(&object_to_agent, -1);
     }
     // std::cout << "Asignment found in " << n_loops << " loops" << std::endl;
     // delete[] profits.data;
@@ -520,16 +518,23 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
 template <typename T = double>
 void assignements_to_arrays(assignments<T> *results,
                             array<int> *agent_to_object,
-                            array<int> *object_to_agent) {
+                            array<int> *object_to_agent, bool square) {
     assert(!results->is_empty);
     int agent, object;
+    int next_agent_idx = 0;
+    int next_obj_idx = 0;
 
     for (int i = 0; i < results->size; i++) {
         agent = results->result[i].agent;
         object = results->result[i].object;
         if (agent != -1 && object != -1) {
-            agent_to_object->data[agent] = object;
-            object_to_agent->data[object] = agent;
+            if (!square) {
+                agent_to_object->data[next_agent_idx++] = object;
+                object_to_agent->data[next_obj_idx++] = agent;
+            } else {
+                agent_to_object->data[agent] = object;
+                object_to_agent->data[object] = agent;
+            }
         }
     }
 }
