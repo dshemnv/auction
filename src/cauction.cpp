@@ -20,6 +20,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
     // Convert d_array to array<double>
     int rows = cost_matrix->rows;
     int cols = cost_matrix->cols;
+    bool square = rows != cols ? false : true;
     array<double> cpp_cost_matrix;
     init<double>(&cpp_cost_matrix, rows, cols, 0);
 
@@ -54,7 +55,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         int agent = result.result[i].agent;
         int object = result.result[i].object;
         if (agent != -1 && object != -1) {
-            if (rows != cols) {
+            if (!square) {
                 agent_to_obj[a_idx++] = object;
                 obj_to_agent[o_idx++] = agent;
             } else {
@@ -64,7 +65,6 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         }
     }
     // puts("[C]: Converted result into arrays");
-
     assignment_result *res =
         (assignment_result *)malloc(sizeof(assignment_result));
 

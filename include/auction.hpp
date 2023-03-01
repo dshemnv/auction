@@ -411,10 +411,10 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     array<bool> assigned_cols;
     init<bool>(&assigned_cols, 1, n_objects, false);
 
-    array<int> agent_to_object;
-    array<int> object_to_agent;
-    init<int>(&agent_to_object, 1, result->size, -1);
-    init<int>(&object_to_agent, 1, result->size, -1);
+    // array<int> agent_to_object;
+    // array<int> object_to_agent;
+    // init<int>(&agent_to_object, 1, result->size, -1);
+    // init<int>(&object_to_agent, 1, result->size, -1);
 
     int n_loops = 0;
     int n_forward = 0;
@@ -499,7 +499,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
         // reset_array<int>(&object_to_agent, -1);
     }
     // std::cout << "Asignment found in " << n_loops << " loops" << std::endl;
-    // delete[] profits.data;
+    delete[] profits.data;
     delete[] prices.data;
     delete[] assigned_agents.data;
     delete[] assigned_objects.data;
@@ -511,8 +511,8 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     delete[] values_backward.data;
     delete[] assigned_rows.data;
     delete[] assigned_cols.data;
-    delete[] agent_to_object.data;
-    delete[] object_to_agent.data;
+    // delete[] agent_to_object.data;
+    // delete[] object_to_agent.data;
 }
 
 template <typename T = double>
