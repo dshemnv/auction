@@ -290,4 +290,22 @@ void sub_val_to_col(array<T> *array, int col, T val) {
     }
 }
 
+template <typename T = double> void swap(T *a, T *b) {
+    T tmp = *b;
+    *b = *a;
+    *a = tmp;
+}
+
+template <typename T = double>
+void sort_together(array<T> *array1, array<T> *array2) {
+    for (int i = 0; i < array1->cols - 1; i++) {
+        for (int j = 0; j < array1->cols - i - 1; j++) {
+            if (array1->data[j] > array1->data[j + 1]) {
+                swap<T>(array1->data + j, array1->data + j + 1);
+                swap<T>(array2->data + j, array2->data + j + 1);
+            }
+        }
+    }
+}
+
 #endif

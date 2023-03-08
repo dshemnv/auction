@@ -12,7 +12,7 @@ OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
 LIBS := -lm
 
-CFLAGS := $(IFLAGS) -Wall -MMD -MP -Ofast -fPIC -march=native -mtune=native
+CFLAGS := $(IFLAGS) -Wall -MMD -MP -g3 -fPIC
 VALFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes 
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)
@@ -30,7 +30,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 
 $(BUILDDIR)/cauction_lib.so: $(OBJS)
 	@mkdir -p $(dir $@)
-	$(CC) -shared -o $@ $(BUILDDIR)/cauction.o $(BUILDDIR)/auction.o 
+	$(CC) -shared -o $@ $(BUILDDIR)/cauction.o $(BUILDDIR)/auction.o
 	@echo "Lib created"
 
 .PHONY: lib

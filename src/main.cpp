@@ -1,3 +1,4 @@
+#define TYPE double
 #include "array.hpp"
 #include "auction.hpp"
 #include <cstdio>
@@ -5,7 +6,6 @@
 #include <getopt.h>
 #include <string>
 
-#define TYPE double
 using namespace std;
 int main(int argc, char *argv[]) {
     static int show;
@@ -52,7 +52,14 @@ int main(int argc, char *argv[]) {
     array<TYPE> A;
     init<TYPE>(&A, n_agents, n_objects, 0);
 
-    bool square = n_agents != n_objects ? false : true;
+    matrix_t mat_type;
+    if (n_agents == n_objects) {
+        mat_type = MEQN;
+    } else if (n_agents > n_objects) {
+        mat_type = MGN;
+    } else if (n_agents < n_objects) {
+        mat_type = MLN;
+    }
 
     read_array<TYPE>(path, &A);
     if (show == 1) {
@@ -73,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     clock_t t;
     t = clock();
-    solve_jacobi<TYPE>(&A, epsilon, &result);
+    solve_jacobi<TYPE>(&A, epsilon, &result, mat_type);
     t = clock() - t;
 
     double timing = (double)t / CLOCKS_PER_SEC;
@@ -81,19 +88,18 @@ int main(int argc, char *argv[]) {
     cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
 
     array<int> agent_to_object;
-    array<int> obj_to_agent;
+    array<int> indexes;
 
     init<int>(&agent_to_object, 1, result.n_assignment, -1);
-    init<int>(&obj_to_agent, 1, result.n_assignment, -1);
+    init<int>(&indexes, 1, result.n_assignment, -1);
 
-    assignements_to_arrays<TYPE>(&result, &agent_to_object, &obj_to_agent,
-                                 square);
+    assignements_to_arrays<TYPE>(&result, &agent_to_object, &indexes, mat_type);
     if (show == 1) {
+        print_array<int>(&indexes);
         print_array<int>(&agent_to_object);
-        print_array<int>(&obj_to_agent);
     }
     delete[] agent_to_object.data;
-    delete[] obj_to_agent.data;
+    delete[] indexes.data;
     delete[] result.result;
     // }
     delete[] A.data;
