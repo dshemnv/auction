@@ -71,6 +71,8 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
              array<bool> *agents_mask, array<bool> *objects_mask,
              assignments<T> *result, const double eps, T *lambda, bool *found) {
 
+    bool auction_stop = false;
+
     for (int i = 0; i < cost_matrix->rows; i++) {
         bool assignment_found = false;
         bool max_found = false;
@@ -84,23 +86,20 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
         }
         for (int j = 0; j < cost_matrix->cols; j++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
-            if (value == 0) {
-                continue;
-            }
             T diff = value - prices->data[j];
             // Find best object and associated value
             if (diff > max1) {
-                if (max_found) {
-                    max2 = max1;
-                }
+                max2 = max1;
                 max1 = diff;
                 best_obj = j;
                 best_value = value;
                 max_found = true;
-            }
-            if (diff > max2 && j != best_obj) {
+            } else if (diff > max2) {
                 max2 = diff;
             }
+        }
+        if (!max_found) {
+            continue;
         }
 
         T bid = best_value - max2 + eps;
@@ -138,9 +137,10 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
             assignment_found = false;
         }
         if (assignment_found) {
-            *found = true;
+            auction_stop = true;
         }
     }
+    *found = auction_stop;
 }
 
 template <typename T = double>
@@ -148,8 +148,7 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
               array<bool> *agents_mask, array<bool> *objects_mask,
               assignments<T> *result, const double eps, T *lambda,
               bool *found) {
-
-    *found = false;
+    bool auction_stop = false;
 
     for (int j = 0; j < cost_matrix->cols; j++) {
         bool assignment_found = false;
@@ -168,26 +167,23 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
         }
         for (int i = 0; i < cost_matrix->rows; i++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
-            if (value == 0) {
-                continue;
-            }
             T diff = value - profits->data[i];
             // Find best agent and associated value
             if (diff > max1) {
-                if (max_found) {
-                    max2 = max1;
-                }
+                max2 = max1;
                 max1 = diff;
                 best_agent = i;
                 best_value = value;
-                max_found = true;
-            }
-            if (diff > max2 && i != best_agent) {
+            } else if (diff > max2) {
                 max2 = diff;
             }
         }
 
-        if (max1 >= *lambda + eps) {
+        if (!max_found) {
+            continue;
+        }
+
+        if (max1 >= (*lambda + eps)) {
 
             T bid = max2 - eps;
 
@@ -240,9 +236,10 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
             assignment_found = false;
         }
         if (assignment_found) {
-            *found = true;
+            auction_stop = true;
         }
     }
+    *found = auction_stop;
 }
 
 template <typename T = double>
@@ -307,13 +304,16 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
             }
         };
 
-        if (!assignment_found(&assigned_agents) && (n_agents != n_objects)) {
-            while (!backward_found ||
-                   !check_prices_lower_than_lambda(&assigned_objects, &prices,
-                                                   &lambda)) {
+        if (!assignment_found(&assigned_agents)) {
+            while (!backward_found) {
+
                 backward<T>(cost_matrix, &prices, &profits, &assigned_agents,
                             &assigned_objects, result, eps, &lambda,
                             &backward_found);
+                if (check_prices_lower_than_lambda(&assigned_objects, &prices,
+                                                   &lambda)) {
+                    break;
+                }
                 n_loops++;
                 if (n_loops > MAX_ITER) {
                     printf("Max iterations reached in backward\n");
@@ -324,7 +324,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
         }
 
         if (assignment_found(&assigned_agents)) {
-            while (n_agents != n_objects) {
+            while (true) {
                 backward<T>(cost_matrix, &prices, &profits, &assigned_agents,
                             &assigned_objects, result, eps, &lambda,
                             &backward_found);

@@ -87,11 +87,11 @@ if __name__ == "__main__":
     # test_mat = random(20, 10, density=0.3, dtype=np.double).A
     # save_as_text(test_mat, "sparse_arr.txt")
     # test_mat = load_from_txt("sparse_arr.txt")
-    test_mat = load_from_txt("test_array.txt")
+    test_mat = load_from_txt("faulty.txt")
     print("[Py]: Loaded matrix from txt to np")
 
     print("[Py]: Calling solver")
-    (agent_to_object, row_idx), c_auction_t = c_auction.solve_auction(test_mat, 0.1)
+    # (agent_to_object, row_idx), c_auction_t = c_auction.solve_auction(test_mat, 0.1)
     print("[Py]: Solver finished")
     t1 = time.perf_counter()
     rows, cols = linear_sum_assignment(-test_mat)
@@ -100,9 +100,9 @@ if __name__ == "__main__":
     
     print(test_mat)
     print("C Auction result:")
-    print(f"Took {c_auction_t * 1000:.3f} ms")
-    print(row_idx)
-    print(agent_to_object)
+    # print(f"Took {c_auction_t * 1000:.3f} ms")
+    # print(row_idx)
+    # print(agent_to_object)
     print("Hungarian result")
     print(f"Took {hung_t * 1000:.3f} ms")
     print(rows)
