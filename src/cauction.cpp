@@ -71,17 +71,17 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
                 agent_to_obj[a_idx++] = object;
                 row_idx[o_idx++] = agent;
             } else {
+                row_idx[a_idx++] = i;
                 agent_to_obj[agent] = object;
-                row_idx[a_idx++] = agent;
             }
         }
     }
-    printf("%d\n", result.size);
-    for (int i = 0; i < result.size; i++) {
-        printf("idx %d val %d\n", row_idx[i], agent_to_obj[i]);
-    }
+    // printf("%d\n", result.size);
+    // for (int i = 0; i < result.size; i++) {
+    //     printf("idx %d val %d\n", row_idx[i], agent_to_obj[i]);
+    // }
     //
-    sort_together_c(row_idx, agent_to_obj, result.n_assignment);
+    // sort_together_c(row_idx, agent_to_obj, result.n_assignment);
     // puts("[C]: Converted result into arrays");
     assignment_result *res =
         (assignment_result *)malloc(sizeof(assignment_result));

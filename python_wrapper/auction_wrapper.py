@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # test_mat = random(20, 10, density=0.3, dtype=np.double).A
     # save_as_text(test_mat, "sparse_arr.txt")
     # test_mat = load_from_txt("sparse_arr.txt")
-    test_mat = load_from_txt("array.txt")
+    test_mat = load_from_txt("test_array.txt")
     print("[Py]: Loaded matrix from txt to np")
 
     print("[Py]: Calling solver")
@@ -96,6 +96,7 @@ if __name__ == "__main__":
     t1 = time.perf_counter()
     rows, cols = linear_sum_assignment(-test_mat)
     hung_t = time.perf_counter() - t1
+    rows_t, cols_t = linear_sum_assignment(-test_mat.transpose())
     
     print(test_mat)
     print("C Auction result:")
