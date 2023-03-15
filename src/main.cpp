@@ -66,42 +66,85 @@ int main(int argc, char *argv[]) {
         cout << "Loaded array:" << endl;
         print_array(&A);
     }
-    // while (1) {
 
-    assignments<TYPE> result;
-    assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
-    result.is_empty = true;
-    result.size = n_agents;
-    result.n_assignment = 0;
-    result.result = new assignment<TYPE>[result.size];
-    for (int i = 0; i < result.size; i++) {
-        result.result[i] = assig;
+    if (mat_type == MGN) {
+        array<TYPE> tA;
+        init<TYPE>(&tA, n_objects, n_agents, 0);
+        transpose<TYPE>(&A, &tA);
+
+        assignments<TYPE> result;
+        assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
+        result.is_empty = true;
+        result.size = tA.rows;
+        result.n_assignment = 0;
+        result.result = new assignment<TYPE>[result.size];
+        for (int i = 0; i < result.size; i++) {
+            result.result[i] = assig;
+        }
+
+        clock_t t;
+        t = clock();
+        solve_jacobi<TYPE>(&tA, epsilon, &result, mat_type);
+        t = clock() - t;
+
+        double timing = (double)t / CLOCKS_PER_SEC;
+        cout << setprecision(4);
+        cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
+
+        array<int> agent_to_object;
+        array<int> indexes;
+
+        init<int>(&agent_to_object, 1, result.n_assignment, -1);
+        init<int>(&indexes, 1, result.n_assignment, -1);
+
+        assignements_to_arrays<TYPE>(&result, &agent_to_object, &indexes,
+                                     mat_type);
+        if (show == 1) {
+            print_array<int>(&indexes);
+            print_array<int>(&agent_to_object);
+        }
+
+        delete[] tA.data;
+        delete[] agent_to_object.data;
+        delete[] indexes.data;
+        delete[] result.result;
+    } else {
+        assignments<TYPE> result;
+        assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
+        result.is_empty = true;
+        result.size = A.rows;
+        result.n_assignment = 0;
+        result.result = new assignment<TYPE>[result.size];
+        for (int i = 0; i < result.size; i++) {
+            result.result[i] = assig;
+        }
+
+        clock_t t;
+        t = clock();
+        solve_jacobi<TYPE>(&A, epsilon, &result, mat_type);
+        t = clock() - t;
+
+        double timing = (double)t / CLOCKS_PER_SEC;
+        cout << setprecision(4);
+        cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
+
+        array<int> agent_to_object;
+        array<int> indexes;
+
+        init<int>(&agent_to_object, 1, result.n_assignment, -1);
+        init<int>(&indexes, 1, result.n_assignment, -1);
+
+        assignements_to_arrays<TYPE>(&result, &agent_to_object, &indexes,
+                                     mat_type);
+        if (show == 1) {
+            print_array<int>(&indexes);
+            print_array<int>(&agent_to_object);
+        }
+        delete[] agent_to_object.data;
+        delete[] indexes.data;
+        delete[] result.result;
     }
 
-    clock_t t;
-    t = clock();
-    solve_jacobi<TYPE>(&A, epsilon, &result, mat_type);
-    t = clock() - t;
-
-    double timing = (double)t / CLOCKS_PER_SEC;
-    cout << setprecision(4);
-    cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
-
-    array<int> agent_to_object;
-    array<int> indexes;
-
-    init<int>(&agent_to_object, 1, result.n_assignment, -1);
-    init<int>(&indexes, 1, result.n_assignment, -1);
-
-    assignements_to_arrays<TYPE>(&result, &agent_to_object, &indexes, mat_type);
-    if (show == 1) {
-        print_array<int>(&indexes);
-        print_array<int>(&agent_to_object);
-    }
-    delete[] agent_to_object.data;
-    delete[] indexes.data;
-    delete[] result.result;
-    // }
     delete[] A.data;
     return EXIT_SUCCESS;
 }

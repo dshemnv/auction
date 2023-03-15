@@ -79,7 +79,7 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
         T max1 = -MIN_INF;
         T max2 = -MIN_INF;
         T best_value = 0;
-        int best_obj = 0;
+        int best_obj = -1;
         // Select an unassigned agent
         if (agents_mask->data[i] == true) {
             continue;
@@ -362,19 +362,25 @@ void assignements_to_arrays(assignments<T> *results,
         agent = results->result[i].agent;
         object = results->result[i].object;
         if (agent != -1 && object != -1) {
-            if (mat_type != MEQN) {
+            if (mat_type == MLN) {
+                row_indexes->data[next_obj_idx++] = agent;
+                agent_to_object->data[next_agent_idx++] = object;
+            } else if (mat_type == MGN) {
 #ifdef VERBOSE
                 printf("Agent %d Object %d\n", agent, object);
 #endif
-                agent_to_object->data[next_agent_idx++] = object;
-                row_indexes->data[next_obj_idx++] = agent;
+                row_indexes->data[next_obj_idx++] =
+                    object; // because of transposition
+                agent_to_object->data[next_agent_idx++] = agent;
             } else {
                 row_indexes->data[next_agent_idx++] = i;
                 agent_to_object->data[agent] = object;
             }
         }
     }
-    // sort_together<int>(row_indexes, agent_to_object);
+    if (mat_type == MGN) {
+        sort_together<int>(row_indexes, agent_to_object);
+    }
 }
 
 #endif // ifndef _AUCTION_H

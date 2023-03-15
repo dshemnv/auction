@@ -308,4 +308,14 @@ void sort_together(array<T> *array1, array<T> *array2) {
     }
 }
 
+template <typename T = double>
+void transpose(array<T> *input, array<T> *output) {
+    for (int i = 0; i < input->rows; i++) {
+        for (int j = 0; j < input->cols; j++) {
+            output->data[j * input->rows + i] =
+                input->data[i * input->cols + j];
+        }
+    }
+}
+
 #endif
