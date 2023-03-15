@@ -39,60 +39,118 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
                 cost_matrix->data[i * cols + j];
         }
     }
-    // puts("[C]: Converted input array to array<double>");
-    // print_d_array(cost_matrix);
-    // Init results
-    assignments<double> result;
-    assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
-    result.size = rows;
-    result.is_empty = true;
-    result.n_assignment = 0;
-    result.result = new (std::nothrow) assignment<double>[result.size];
-    for (int i = 0; i < result.size; i++) {
-        result.result[i] = assig;
-    }
-    // puts("[C]: Initialized result structure");
-    // Solve using solve_jacobi
-    // puts("[C]: Start solving");
-    solve_jacobi<double>(&cpp_cost_matrix, eps, &result, mat_type);
-    // puts("[C]: End solving");
-    // Convert assignments<double> to assignment_result
-    int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
-    int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
-    int a_idx = 0;
-    int o_idx = 0;
-    for (int i = 0; i < result.size; i++) {
-        int agent = result.result[i].agent;
-        int object = result.result[i].object;
-        if (agent != -1 && object != -1) {
-            if (mat_type != MEQN) {
-                assert(a_idx < result.n_assignment);
-                assert(o_idx < result.n_assignment);
-                agent_to_obj[a_idx++] = object;
-                row_idx[o_idx++] = agent;
-            } else {
-                row_idx[a_idx++] = i;
-                agent_to_obj[agent] = object;
+
+    if (mat_type == MGN) {
+        array<double> t_cpp_cost_matrix;
+        init<double>(&t_cpp_cost_matrix, cols, rows, 0);
+
+        transpose(&cpp_cost_matrix, &t_cpp_cost_matrix);
+
+        assignments<double> result;
+        assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
+        result.size = t_cpp_cost_matrix.rows;
+        result.is_empty = true;
+        result.n_assignment = 0;
+        result.result = new (std::nothrow) assignment<double>[result.size];
+        for (int i = 0; i < result.size; i++) {
+            result.result[i] = assig;
+        }
+
+        solve_jacobi<double>(&t_cpp_cost_matrix, eps, &result, mat_type);
+
+        int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
+        int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
+        int a_idx = 0;
+        int o_idx = 0;
+        for (int i = 0; i < result.size; i++) {
+            int agent = result.result[i].agent;
+            int object = result.result[i].object;
+            if (agent != -1 && object != -1) {
+                if (mat_type == MLN) {
+                    assert(a_idx < result.n_assignment);
+                    assert(o_idx < result.n_assignment);
+                    agent_to_obj[a_idx++] = object;
+                    row_idx[o_idx++] = agent;
+                } else if (mat_type == MGN) {
+                    agent_to_obj[a_idx++] = agent;
+                    row_idx[o_idx++] = object;
+
+                } else {
+                    row_idx[a_idx++] = i;
+                    agent_to_obj[agent] = object;
+                }
             }
         }
+
+        if (mat_type != MEQN) {
+            sort_together_c(row_idx, agent_to_obj, result.n_assignment);
+        }
+
+        assignment_result *res =
+            (assignment_result *)malloc(sizeof(assignment_result));
+
+        res->len = result.n_assignment;
+        res->agent_to_object = agent_to_obj;
+        res->row_idx = row_idx;
+
+        return res;
+    } else {
+
+        // puts("[C]: Converted input array to array<double>");
+        // print_d_array(cost_matrix);
+        // Init results
+        assignments<double> result;
+        assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
+        result.size = rows;
+        result.is_empty = true;
+        result.n_assignment = 0;
+        result.result = new (std::nothrow) assignment<double>[result.size];
+        for (int i = 0; i < result.size; i++) {
+            result.result[i] = assig;
+        }
+        // puts("[C]: Initialized result structure");
+        // Solve using solve_jacobi
+        // puts("[C]: Start solving");
+        solve_jacobi<double>(&cpp_cost_matrix, eps, &result, mat_type);
+        // puts("[C]: End solving");
+        // Convert assignments<double> to assignment_result
+        int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
+        int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
+        int a_idx = 0;
+        int o_idx = 0;
+        for (int i = 0; i < result.size; i++) {
+            int agent = result.result[i].agent;
+            int object = result.result[i].object;
+            if (agent != -1 && object != -1) {
+                if (mat_type != MEQN) {
+                    assert(a_idx < result.n_assignment);
+                    assert(o_idx < result.n_assignment);
+                    agent_to_obj[a_idx++] = object;
+                    row_idx[o_idx++] = agent;
+                } else {
+                    row_idx[a_idx++] = i;
+                    agent_to_obj[agent] = object;
+                }
+            }
+        }
+        // printf("%d\n", result.size);
+        // for (int i = 0; i < result.size; i++) {
+        //     printf("idx %d val %d\n", row_idx[i], agent_to_obj[i]);
+        // }
+        //
+        // sort_together_c(row_idx, agent_to_obj, result.n_assignment);
+        // puts("[C]: Converted result into arrays");
+        assignment_result *res =
+            (assignment_result *)malloc(sizeof(assignment_result));
+
+        res->len = result.n_assignment;
+        res->agent_to_object = agent_to_obj;
+        res->row_idx = row_idx;
+
+        // puts("[C]: Populated result");
+
+        return res;
     }
-    // printf("%d\n", result.size);
-    // for (int i = 0; i < result.size; i++) {
-    //     printf("idx %d val %d\n", row_idx[i], agent_to_obj[i]);
-    // }
-    //
-    // sort_together_c(row_idx, agent_to_obj, result.n_assignment);
-    // puts("[C]: Converted result into arrays");
-    assignment_result *res =
-        (assignment_result *)malloc(sizeof(assignment_result));
-
-    res->len = result.n_assignment;
-    res->agent_to_object = agent_to_obj;
-    res->row_idx = row_idx;
-
-    // puts("[C]: Populated result");
-
-    return res;
 }
 
 void swap_c(int *a, int *b) {
@@ -108,6 +166,15 @@ void sort_together_c(int *array1, int *array2, int length) {
                 swap(&array1[j], &array1[j + 1]);
                 swap(&array2[j], &array2[j + 1]);
             }
+        }
+    }
+}
+
+void transpose(d_array *input, d_array *output) {
+    for (int i = 0; i < input->rows; i++) {
+        for (int j = 0; j < input->cols; j++) {
+            output->data[j * input->rows + i] =
+                input->data[i * input->cols + j];
         }
     }
 }
