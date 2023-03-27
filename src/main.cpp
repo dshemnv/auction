@@ -72,6 +72,10 @@ int main(int argc, char *argv[]) {
         init<TYPE>(&tA, n_objects, n_agents, 0);
         transpose<TYPE>(&A, &tA);
 
+        if (epsilon == 0) {
+            epsilon = 1e-3 / n_objects;
+        }
+
         assignments<TYPE> result;
         assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
         result.is_empty = true;
@@ -109,6 +113,11 @@ int main(int argc, char *argv[]) {
         delete[] indexes.data;
         delete[] result.result;
     } else {
+
+        if (epsilon == 0) {
+            epsilon = 1e-3 / n_agents;
+        }
+
         assignments<TYPE> result;
         assignment<TYPE> assig = {.agent = -1, .object = -1, .value = -1};
         result.is_empty = true;

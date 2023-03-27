@@ -378,7 +378,7 @@ void assignements_to_arrays(assignments<T> *results,
             }
         }
     }
-    if (mat_type == MGN) {
+    if (mat_type != MEQN) {
         sort_together<int>(row_indexes, agent_to_object);
     }
 }

@@ -46,6 +46,10 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
 
         transpose(&cpp_cost_matrix, &t_cpp_cost_matrix);
 
+        if (eps == 0) {
+            eps = 1e-3 / cols;
+        }
+
         assignments<double> result;
         assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
         result.size = t_cpp_cost_matrix.rows;
@@ -99,6 +103,9 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         // puts("[C]: Converted input array to array<double>");
         // print_d_array(cost_matrix);
         // Init results
+        if (eps == 0) {
+            eps = 1e-3 / rows;
+        }
         assignments<double> result;
         assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
         result.size = rows;
@@ -132,6 +139,9 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
                     agent_to_obj[agent] = object;
                 }
             }
+        }
+        if (mat_type != MEQN) {
+            sort_together_c(row_idx, agent_to_obj, result.n_assignment);
         }
         // printf("%d\n", result.size);
         // for (int i = 0; i < result.size; i++) {
