@@ -6,7 +6,7 @@
 #include <ctime>
 #define NO_REPLACE -2
 #define NOTHING_FOUND -1
-#define MAX_ITER 1000
+#define MAX_ITER 10000
 #include "array.hpp"
 
 enum matrix_type { MLN, MEQN, MGN }; // M<N, M=N, M>N
@@ -89,12 +89,15 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
             T diff = value - prices->data[j];
             // Find best object and associated value
             if (diff > max1) {
-                max2 = max1;
+                if (max_found) {
+                    max2 = max1;
+                }
                 max1 = diff;
                 best_obj = j;
                 best_value = value;
                 max_found = true;
-            } else if (diff > max2) {
+            }
+            if (diff > max2 && j != best_obj) {
                 max2 = diff;
             }
         }
@@ -144,6 +147,72 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
 }
 
 template <typename T = double>
+void simple_forward(array<T> *cost_matrix, array<T> *prices,
+                    array<bool> *agents_mask, assignments<T> *result,
+                    const double eps) {
+
+    for (int i = 0; i < cost_matrix->rows; i++) {
+        bool max_found = false;
+        T max1 = -MIN_INF;
+        T max2 = -MIN_INF;
+        T best_value = 0;
+        int best_obj = -1;
+        // Select an unassigned agent
+        if (agents_mask->data[i] == true) {
+            continue;
+        }
+        for (int j = 0; j < cost_matrix->cols; j++) {
+            T value = cost_matrix->data[i * cost_matrix->cols + j];
+            T diff = value - prices->data[j];
+            // Find best object and associated value
+            if (diff > max1) {
+                if (max_found) {
+                    max2 = max1;
+                }
+                max1 = diff;
+                best_obj = j;
+                best_value = value;
+                max_found = true;
+            }
+            if (diff > max2 && j != best_obj) {
+                max2 = diff;
+            }
+        }
+        if (!max_found) {
+            continue;
+        }
+
+        T bid = max1 - max2 + eps;
+        prices->data[best_obj] += bid;
+        agents_mask->data[i] = true;
+
+        bool new_assignment = true;
+
+        for (int k = 0; k < result->size; k++) {
+            int old_object = result->result[k].object;
+            int old_agent = result->result[k].agent;
+            if (old_object == best_obj) {
+                agents_mask->data[old_agent] = false;
+                new_assignment = false;
+                result->result[k].agent = i;
+                result->result[k].value = best_value;
+                break;
+            }
+        }
+        if (new_assignment) {
+            int free_idx;
+            find_available_idx(result, &free_idx);
+
+            result->result[free_idx].agent = i;
+            result->result[free_idx].object = best_obj;
+            result->result[free_idx].value = best_value;
+            result->is_empty = false;
+            result->n_assignment++;
+        }
+    }
+}
+
+template <typename T = double>
 void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
               array<bool> *agents_mask, array<bool> *objects_mask,
               assignments<T> *result, const double eps, T *lambda,
@@ -170,11 +239,15 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
             T diff = value - profits->data[i];
             // Find best agent and associated value
             if (diff > max1) {
-                max2 = max1;
+                if (max_found) {
+                    max2 = max1;
+                }
                 max1 = diff;
                 best_agent = i;
                 best_value = value;
-            } else if (diff > max2) {
+                max_found = true;
+            }
+            if (diff > max2 && i != best_agent) {
                 max2 = diff;
             }
         }
@@ -264,13 +337,39 @@ bool assignment_found(array<bool> *assigned_agents) {
 }
 
 template <typename T = double>
+void solve_simple(array<T> *cost_matrix, const double eps,
+                  assignments<T> *result) {
+    int n_agents = cost_matrix->rows;
+    int n_objects = cost_matrix->cols;
+
+    assert(n_objects == n_agents);
+
+    array<T> prices;
+    array<bool> assigned_agents;
+
+    init<T>(&prices, 1, n_objects, 0);
+    init<bool>(&assigned_agents, 1, n_agents, false);
+
+    int n_loops = 0;
+
+    while (!assignment_found(&assigned_agents)) {
+        if (n_loops > MAX_ITER) {
+#ifdef VERBOSE
+            printf("Maximum iterations reached, exiting.\n");
+#endif
+        }
+        simple_forward(cost_matrix, &prices, &assigned_agents, result, eps);
+    }
+}
+
+template <typename T = double>
 void solve_jacobi(array<T> *cost_matrix, const double eps,
                   assignments<T> *result, const matrix_t mat_type) {
     int n_agents = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
     array<T> prices;
-    init<T>(&prices, 1, n_objects, 0);
+    init<T>(&prices, 1, n_objects, 1);
     array<T> profits;
     init<T>(&profits, n_agents, 1, 1); // Satisfy eCS (2a)
     T lambda = 0;

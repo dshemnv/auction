@@ -1,7 +1,7 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
 #define ARR_MAX 10000.0
-#define MIN_INF 1e-32
+#define MIN_INF 1e32
 
 #include <cassert>
 #include <cerrno>
