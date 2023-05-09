@@ -133,9 +133,15 @@ def perform_bench(sizes, n_samples, n_exp, agents=None, func: callable = None):
                 # if np.array_equal(cols, agent_to_object):
                 #     all_times.append(c_auction_t * 1000000)
                 #     good_flag = True
+
+                print(
+                    f"Auction cost {cost_calc(agent_to_object, mat):.3f}, Hungarian cost: {cost_calc(cols, mat):.3f}"
+                )
+
                 if (np.abs(
                         cost_calc(cols, mat) - cost_calc(agent_to_object, mat))
-                        <= 0.1) and (all(agent_to_object != -1)):
+                        / cost_calc(cols, mat) <= 0.1) and (all(
+                            agent_to_object != -1)):
                     all_times.append(c_auction_t * 1000000)
                     good_flag = True
             if good_flag:
@@ -167,10 +173,10 @@ if __name__ == "__main__":
 
     # results = perform_bench(
     #     ((8, 8), (16, 16), (24, 24), (32, 32), (48, 48), (64, 64)), 100, 10)
-    results = perform_bench([(8, 8)],
-                            5,
-                            10,
+    results = perform_bench([(5000, 5000)],
                             1,
+                            1,
+                            5000,
                             func=c_auction.solve_forward_simple)
     pprint(results)
     # print("[Py]: Calling solver")

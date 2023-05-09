@@ -1,4 +1,4 @@
-#include "carray.hpp"
+#include "cauction.hpp"
 #include <new>
 
 extern "C" {
@@ -41,7 +41,9 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
         result.result[i] = assig;
     }
 
-    solve_simple<double>(&cpp_cost_matrix, eps, &result);
+    int n_iter = 0;
+
+    solve_simple<double>(&cpp_cost_matrix, eps, &result, &n_iter);
 
     int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
     int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
@@ -61,6 +63,7 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
     res->len = result.n_assignment;
     res->agent_to_object = agent_to_obj;
     res->row_idx = row_idx;
+    res->n_iter = n_iter;
 
     return res;
 }
@@ -108,8 +111,10 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         for (int i = 0; i < result.size; i++) {
             result.result[i] = assig;
         }
+        int niter = 0;
 
-        solve_jacobi<double>(&t_cpp_cost_matrix, eps, &result, mat_type);
+        solve_jacobi<double>(&t_cpp_cost_matrix, eps, &result, mat_type,
+                             &niter);
 
         int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
         int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
@@ -145,6 +150,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         res->len = result.n_assignment;
         res->agent_to_object = agent_to_obj;
         res->row_idx = row_idx;
+        res->n_iter = niter;
 
         return res;
     } else {
@@ -167,7 +173,9 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         // puts("[C]: Initialized result structure");
         // Solve using solve_jacobi
         // puts("[C]: Start solving");
-        solve_jacobi<double>(&cpp_cost_matrix, eps, &result, mat_type);
+        int niter = 0;
+
+        solve_jacobi<double>(&cpp_cost_matrix, eps, &result, mat_type, &niter);
         // puts("[C]: End solving");
         // Convert assignments<double> to assignment_result
         int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
@@ -205,6 +213,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         res->len = result.n_assignment;
         res->agent_to_object = agent_to_obj;
         res->row_idx = row_idx;
+        res->n_iter = niter;
 
         // puts("[C]: Populated result");
 

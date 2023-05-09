@@ -6,7 +6,7 @@
 #include <ctime>
 #define NO_REPLACE -2
 #define NOTHING_FOUND -1
-#define MAX_ITER 10000
+#define MAX_ITER 100000
 #include "array.hpp"
 
 enum matrix_type { MLN, MEQN, MGN }; // M<N, M=N, M>N
@@ -338,7 +338,7 @@ bool assignment_found(array<bool> *assigned_agents) {
 
 template <typename T = double>
 void solve_simple(array<T> *cost_matrix, const double eps,
-                  assignments<T> *result) {
+                  assignments<T> *result, int *n_iter) {
     int n_agents = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
@@ -353,6 +353,7 @@ void solve_simple(array<T> *cost_matrix, const double eps,
     int n_loops = 0;
 
     while (!assignment_found(&assigned_agents)) {
+        n_loops++;
         if (n_loops > MAX_ITER) {
 #ifdef VERBOSE
             printf("Maximum iterations reached, exiting.\n");
@@ -360,16 +361,17 @@ void solve_simple(array<T> *cost_matrix, const double eps,
         }
         simple_forward(cost_matrix, &prices, &assigned_agents, result, eps);
     }
+    *n_iter = n_loops;
 }
 
 template <typename T = double>
 void solve_jacobi(array<T> *cost_matrix, const double eps,
-                  assignments<T> *result, const matrix_t mat_type) {
+                  assignments<T> *result, const matrix_t mat_type, int *niter) {
     int n_agents = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
     array<T> prices;
-    init<T>(&prices, 1, n_objects, 1);
+    init<T>(&prices, 1, n_objects, 0);
     array<T> profits;
     init<T>(&profits, n_agents, 1, 1); // Satisfy eCS (2a)
     T lambda = 0;
@@ -446,6 +448,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     delete[] prices.data;
     delete[] assigned_agents.data;
     delete[] assigned_objects.data;
+    *niter = n_loops;
 }
 
 template <typename T = double>
