@@ -140,8 +140,8 @@ def perform_bench(sizes, n_samples, n_exp, agents=None, func: callable = None):
 
                 if (np.abs(
                         cost_calc(cols, mat) - cost_calc(agent_to_object, mat))
-                        / cost_calc(cols, mat) <= 0.1) and (all(
-                            agent_to_object != -1)):
+                        / cost_calc(cols, mat)
+                        <= 0.1) and (all(agent_to_object != -1)):
                     all_times.append(c_auction_t * 1000000)
                     good_flag = True
             if good_flag:
@@ -158,41 +158,41 @@ if __name__ == "__main__":
     c_auction = CAuctionWrapper(
         "/home/dshem/Documents/these/ressources/papers/rapido2023/experiments/auction_c/bin/cauction_lib.so"
     )
-    # test_mat = np.array([[0.08411499, 0.92580858, 1.78757778,  0.71264366],
-    # [1.14656623,  0.85612268, 1.35644848, 0.15593028],
-    # [2.30138558,  0.03428558,  0.06794686,  0.94001399],
-    # [0.09391892,  0.33946436, 0.4026701,   1.52602039]])
+    # test_mat = np.array([[0.08411499, 0.92580858, 1.78757778, 0.71264366],
+    #  [1.14656623, 0.85612268, 1.35644848, 0.15593028],
+    #  [2.30138558, 0.03428558, 0.06794686, 0.94001399],
+    #  [0.09391892, 0.33946436, 0.4026701, 1.52602039]])
 
-    # np.random.seed(10)
+    np.random.seed(10)
     # test_mat = np.abs(np.random.randn(20, 10))
-    # test_mat = random(10, 5, density=0.3, dtype=np.double).A
-    # print(test_mat.shape)
+    test_mat = random(10, 5, density=0.3, dtype=np.double).A
+    print(test_mat.shape)
     # test_mat = load_from_txt("sparse_arr.txt")
     # test_mat = load_from_txt("assym_array.txt")
     # print("[Py]: Loaded matrix from txt to np")
 
     # results = perform_bench(
     #     ((8, 8), (16, 16), (24, 24), (32, 32), (48, 48), (64, 64)), 100, 10)
-    results = perform_bench([(5000, 5000)],
-                            1,
-                            1,
-                            5000,
-                            func=c_auction.solve_forward_simple)
-    pprint(results)
+    # results = perform_bench([(5000, 5000)],
+    #                         1,
+    #                         1,
+    #                         5000,
+    #                         func=c_auction.solve_forward_simple)
+    # pprint(results)
     # print("[Py]: Calling solver")
-    # (agent_to_object,
-    #  row_idx), c_auction_t = c_auction.solve_auction(test_mat, 0.0001)
-    # print("[Py]: Solver finished")
-    # t1 = time.perf_counter()
-    # rows, cols = linear_sum_assignment(-test_mat)
-    # hung_t = time.perf_counter() - t1
+    (agent_to_object,
+     row_idx), c_auction_t = c_auction.solve_auction(test_mat, 0.0001)
+    print("[Py]: Solver finished")
+    t1 = time.perf_counter()
+    rows, cols = linear_sum_assignment(-test_mat)
+    hung_t = time.perf_counter() - t1
 
-    # print(test_mat)
-    # print("C Auction result:")
-    # print(f"Took {c_auction_t * 1000000:.3f} µs")
-    # print(row_idx)
-    # print(agent_to_object)
-    # print("Hungarian result")
-    # print(f"Took {hung_t * 1000000:.3f} µs")
-    # print(rows)
-    # print(cols)
+    print(test_mat)
+    print("C Auction result:")
+    print(f"Took {c_auction_t * 1000000:.3f} µs")
+    print(row_idx)
+    print(agent_to_object)
+    print("Hungarian result")
+    print(f"Took {hung_t * 1000000:.3f} µs")
+    print(rows)
+    print(cols)

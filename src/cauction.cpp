@@ -22,7 +22,7 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
 
     assert(cols == rows);
 
-    array<double> cpp_cost_matrix;
+    auction_array<double> cpp_cost_matrix;
     init<double>(&cpp_cost_matrix, rows, cols, 0);
 
     for (int i = 0; i < cpp_cost_matrix.rows; i++) {
@@ -69,7 +69,7 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
 }
 
 assignment_result *solve(d_array *cost_matrix, float eps) {
-    // Convert d_array to array<double>
+    // Convert d_array to auction_array<double>
     int rows = cost_matrix->rows;
     int cols = cost_matrix->cols;
 
@@ -82,7 +82,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         mat_type = MLN;
     }
 
-    array<double> cpp_cost_matrix;
+    auction_array<double> cpp_cost_matrix;
     init<double>(&cpp_cost_matrix, rows, cols, 0);
 
     for (int i = 0; i < cpp_cost_matrix.rows; i++) {
@@ -93,7 +93,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
     }
 
     if (mat_type == MGN) {
-        array<double> t_cpp_cost_matrix;
+        auction_array<double> t_cpp_cost_matrix;
         init<double>(&t_cpp_cost_matrix, cols, rows, 0);
 
         transpose(&cpp_cost_matrix, &t_cpp_cost_matrix);
@@ -155,7 +155,7 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         return res;
     } else {
 
-        // puts("[C]: Converted input array to array<double>");
+        // puts("[C]: Converted input auction_array to array<double>");
         // print_d_array(cost_matrix);
         // Init results
         if (eps == 0) {

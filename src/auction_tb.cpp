@@ -17,6 +17,10 @@
 #define _C 8
 #endif
 
+#ifndef _EPS
+#define _EPS 0.0001f
+#endif
+
 #define SIZE (_R * _C)
 
 double total_cost(assignment_result *assignment, d_array *cost_matrix) {
@@ -32,7 +36,7 @@ double total_cost(assignment_result *assignment, d_array *cost_matrix) {
 
 int main(int argc, char **argv) {
     int ret = 0;
-    float eps = 0.001f;
+    float eps = _EPS;
     float times_sum[MATRICES] = {0};
     float times_min[MATRICES] = {0};
     float times_max[MATRICES] = {0};
@@ -87,8 +91,9 @@ int main(int argc, char **argv) {
             auction_cost = total_cost(result, &arr);
             hungarian_cost = total_cost(&golden_res, &arr);
             iter = result->n_iter;
-
-            if (abs(auction_cost - hungarian_cost) > 1.0f) {
+            // printf("Auction Cost: %f\nHungarian Cost: %f\n", auction_cost,
+            //        hungarian_cost);
+            if (abs(auction_cost - hungarian_cost) / hungarian_cost > 0.001f) {
                 good = false;
             }
 
@@ -114,7 +119,7 @@ int main(int argc, char **argv) {
         if (good) {
             correct++;
         }
-        if (iter < MAX_ITER) {
+        if (iter < MAX_ITER_AUCTION) {
             max_iter = max_iter > iter ? max_iter : iter;
         }
     }
@@ -136,11 +141,13 @@ int main(int argc, char **argv) {
         ret = 1;
     }
 
-    printf("Average mean exec time\t %.3f μs\n", mean);
-    printf("Min exec time\t %.3f μs\n", min);
-    printf("Max exec time\t %.3f μs\n", max);
-    printf("Precision\t %.3f\n", precision);
-    printf("Maximum iterations:\t %d\n", max_iter);
+    printf("[NAIVE] Precision     %.3f \n\r", precision);
+    printf("[NAIVE] Average exec time\t %.5f μs\n\r", mean);
+    printf("[NAIVE] Minimum exec time\t %.5f μs\n\r", min);
+    printf("[NAIVE] Maximum exec time\t %.5f μs\n\r", max);
+    printf("[NAIVE] Maximum iterations\t %d", max_iter);
+    printf("\n");
+    printf("\n");
 
     return ret;
 }

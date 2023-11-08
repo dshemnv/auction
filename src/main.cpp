@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    array<TYPE> A;
+    auction_array<TYPE> A;
     init<TYPE>(&A, n_agents, n_objects, 0);
 
     matrix_t mat_type;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (mat_type == MGN) {
-        array<TYPE> tA;
+        auction_array<TYPE> tA;
         init<TYPE>(&tA, n_objects, n_agents, 0);
         transpose<TYPE>(&A, &tA);
 
@@ -86,17 +86,18 @@ int main(int argc, char *argv[]) {
             result.result[i] = assig;
         }
 
+        int niter = 0;
         clock_t t;
         t = clock();
-        solve_jacobi<TYPE>(&tA, epsilon, &result, mat_type);
+        solve_jacobi<TYPE>(&tA, epsilon, &result, mat_type, &niter);
         t = clock() - t;
 
         double timing = (double)t / CLOCKS_PER_SEC;
         cout << setprecision(4);
         cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
 
-        array<int> agent_to_object;
-        array<int> indexes;
+        auction_array<int> agent_to_object;
+        auction_array<int> indexes;
 
         init<int>(&agent_to_object, 1, result.n_assignment, -1);
         init<int>(&indexes, 1, result.n_assignment, -1);
@@ -128,17 +129,18 @@ int main(int argc, char *argv[]) {
             result.result[i] = assig;
         }
 
+        int niter = 0;
         clock_t t;
         t = clock();
-        solve_jacobi<TYPE>(&A, epsilon, &result, mat_type);
+        solve_jacobi<TYPE>(&A, epsilon, &result, mat_type, &niter);
         t = clock() - t;
 
         double timing = (double)t / CLOCKS_PER_SEC;
         cout << setprecision(4);
         cout << "Assignment took " << timing * 1000.0 << "ms" << endl;
 
-        array<int> agent_to_object;
-        array<int> indexes;
+        auction_array<int> agent_to_object;
+        auction_array<int> indexes;
 
         init<int>(&agent_to_object, 1, result.n_assignment, -1);
         init<int>(&indexes, 1, result.n_assignment, -1);

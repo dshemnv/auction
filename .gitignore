@@ -2,4 +2,6 @@ bin
 .vscode
 .venv
 gen_rnd_array.py
-
+*data*.hpp
+sparse*.hpp
+vgcore*

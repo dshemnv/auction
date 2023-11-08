@@ -1,7 +1,7 @@
 TARGETAPP := auction
-CC := g++
+CC := clang++
 
-IDIR := include
+IDIR := . include
 LDIR := lib
 SRCDIR := src
 BUILDDIR := bin
@@ -12,7 +12,7 @@ OBJS := $(subst $(SRCDIR),$(BUILDDIR),$(SRCS:.cpp=.o))
 DEPFILES := $(OBJS:%.o=%.d)
 LIBS := -lm
 
-CFLAGS := $(IFLAGS) -Wall -MMD -MP -g3 -fPIC
+CFLAGS := $(IFLAGS) -Wall -MMD -MP -Ofast -march=native -mtune=native -fPIC
 VALFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes 
 
 all: $(SRCS) $(BUILDDIR)/$(TARGETAPP)

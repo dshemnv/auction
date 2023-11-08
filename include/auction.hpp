@@ -6,7 +6,7 @@
 #include <ctime>
 #define NO_REPLACE -2
 #define NOTHING_FOUND -1
-#define MAX_ITER 100000
+#define MAX_ITER_AUCTION 100000
 #include "array.hpp"
 
 enum matrix_type { MLN, MEQN, MGN }; // M<N, M=N, M>N
@@ -25,7 +25,7 @@ template <typename T = double> struct assignments {
     assignment<T> *result;
 };
 
-void reset_assignement(array<bool> *array_mask);
+void reset_assignement(auction_array<bool> *array_mask);
 
 template <typename T = double>
 void find_available_idx(assignments<T> *result, int *idx) {
@@ -40,8 +40,9 @@ void find_available_idx(assignments<T> *result, int *idx) {
 }
 
 template <typename T = double>
-bool check_eCS(array<T> *profits, array<T> *prices, array<T> *cost_matrix,
-               const double eps, assignments<T> *S) {
+bool check_eCS(auction_array<T> *profits, auction_array<T> *prices,
+               auction_array<T> *cost_matrix, const double eps,
+               assignments<T> *S) {
 
     for (int i = 0; i < cost_matrix->rows; i++) {
         for (int j = 0; j < cost_matrix->cols; j++) {
@@ -67,9 +68,10 @@ bool check_eCS(array<T> *profits, array<T> *prices, array<T> *cost_matrix,
 }
 
 template <typename T = double>
-void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
-             array<bool> *agents_mask, array<bool> *objects_mask,
-             assignments<T> *result, const double eps, T *lambda, bool *found) {
+void forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
+             auction_array<T> *profits, auction_array<bool> *agents_mask,
+             auction_array<bool> *objects_mask, assignments<T> *result,
+             const double eps, T *lambda, bool *found) {
 
     bool auction_stop = false;
 
@@ -147,8 +149,8 @@ void forward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
 }
 
 template <typename T = double>
-void simple_forward(array<T> *cost_matrix, array<T> *prices,
-                    array<bool> *agents_mask, assignments<T> *result,
+void simple_forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
+                    auction_array<bool> *agents_mask, assignments<T> *result,
                     const double eps) {
 
     for (int i = 0; i < cost_matrix->rows; i++) {
@@ -213,10 +215,10 @@ void simple_forward(array<T> *cost_matrix, array<T> *prices,
 }
 
 template <typename T = double>
-void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
-              array<bool> *agents_mask, array<bool> *objects_mask,
-              assignments<T> *result, const double eps, T *lambda,
-              bool *found) {
+void backward(auction_array<T> *cost_matrix, auction_array<T> *prices,
+              auction_array<T> *profits, auction_array<bool> *agents_mask,
+              auction_array<bool> *objects_mask, assignments<T> *result,
+              const double eps, T *lambda, bool *found) {
     bool auction_stop = false;
 
     for (int j = 0; j < cost_matrix->cols; j++) {
@@ -232,8 +234,10 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
         }
 
         if (!(prices->data[j] > *lambda)) {
+            std::cout << "[INFO] Not Processing backward" << std::endl;
             continue;
         }
+        std::cout << "[INFO] Processing backward" << std::endl;
         for (int i = 0; i < cost_matrix->rows; i++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
             T diff = value - profits->data[i];
@@ -316,8 +320,8 @@ void backward(array<T> *cost_matrix, array<T> *prices, array<T> *profits,
 }
 
 template <typename T = double>
-bool check_prices_lower_than_lambda(array<bool> *objects_mask, array<T> *prices,
-                                    T *lambda) {
+bool check_prices_lower_than_lambda(auction_array<bool> *objects_mask,
+                                    auction_array<T> *prices, T *lambda) {
     for (int i = 0; i < prices->cols; i++) {
         if ((objects_mask->data[i] == false) && (prices->data[i] > *lambda)) {
             return false;
@@ -327,7 +331,7 @@ bool check_prices_lower_than_lambda(array<bool> *objects_mask, array<T> *prices,
 }
 
 template <typename T = double>
-bool assignment_found(array<bool> *assigned_agents) {
+bool assignment_found(auction_array<bool> *assigned_agents) {
     for (int i = 0; i < assigned_agents->cols; i++) {
         if (!assigned_agents->data[i]) {
             return false;
@@ -337,15 +341,15 @@ bool assignment_found(array<bool> *assigned_agents) {
 }
 
 template <typename T = double>
-void solve_simple(array<T> *cost_matrix, const double eps,
+void solve_simple(auction_array<T> *cost_matrix, const double eps,
                   assignments<T> *result, int *n_iter) {
     int n_agents = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
     assert(n_objects == n_agents);
 
-    array<T> prices;
-    array<bool> assigned_agents;
+    auction_array<T> prices;
+    auction_array<bool> assigned_agents;
 
     init<T>(&prices, 1, n_objects, 0);
     init<bool>(&assigned_agents, 1, n_agents, false);
@@ -354,7 +358,7 @@ void solve_simple(array<T> *cost_matrix, const double eps,
 
     while (!assignment_found(&assigned_agents)) {
         n_loops++;
-        if (n_loops > MAX_ITER) {
+        if (n_loops > MAX_ITER_AUCTION) {
 #ifdef VERBOSE
             printf("Maximum iterations reached, exiting.\n");
 #endif
@@ -365,20 +369,20 @@ void solve_simple(array<T> *cost_matrix, const double eps,
 }
 
 template <typename T = double>
-void solve_jacobi(array<T> *cost_matrix, const double eps,
+void solve_jacobi(auction_array<T> *cost_matrix, const double eps,
                   assignments<T> *result, const matrix_t mat_type, int *niter) {
     int n_agents = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
-    array<T> prices;
+    auction_array<T> prices;
     init<T>(&prices, 1, n_objects, 0);
-    array<T> profits;
+    auction_array<T> profits;
     init<T>(&profits, n_agents, 1, 1); // Satisfy eCS (2a)
     T lambda = 0;
 
-    array<bool> assigned_agents;
+    auction_array<bool> assigned_agents;
     init<bool>(&assigned_agents, 1, n_agents, false);
-    array<bool> assigned_objects;
+    auction_array<bool> assigned_objects;
     init<bool>(&assigned_objects, 1, n_objects, false);
 
     int n_loops = 0;
@@ -386,7 +390,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
     while (true) {
         bool forward_found = false;
         bool backward_found = false;
-        if (n_loops > MAX_ITER) {
+        if (n_loops > MAX_ITER_AUCTION) {
             dump_array("dumped_array_v2.txt", cost_matrix);
 #ifdef VERBOSE
             printf("Maximum iterations reached, exiting.\n");
@@ -398,7 +402,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
             forward<T>(cost_matrix, &prices, &profits, &assigned_agents,
                        &assigned_objects, result, eps, &lambda, &forward_found);
             n_loops++;
-            if (n_loops > MAX_ITER) {
+            if (n_loops > MAX_ITER_AUCTION) {
                 printf("Max iterations reached in forward\n");
                 dump_array("faulty.txt", cost_matrix);
                 exit(EXIT_FAILURE);
@@ -416,7 +420,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
                     break;
                 }
                 n_loops++;
-                if (n_loops > MAX_ITER) {
+                if (n_loops > MAX_ITER_AUCTION) {
                     printf("Max iterations reached in backward\n");
                     dump_array("faulty.txt", cost_matrix);
                     exit(EXIT_FAILURE);
@@ -434,7 +438,7 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
                     break;
                 }
                 n_loops++;
-                if (n_loops > MAX_ITER) {
+                if (n_loops > MAX_ITER_AUCTION) {
                     printf("Max iterations reached in final backward\n");
                     dump_array("faulty.txt", cost_matrix);
                     exit(EXIT_FAILURE);
@@ -453,8 +457,9 @@ void solve_jacobi(array<T> *cost_matrix, const double eps,
 
 template <typename T = double>
 void assignements_to_arrays(assignments<T> *results,
-                            array<int> *agent_to_object,
-                            array<int> *row_indexes, matrix_t mat_type) {
+                            auction_array<int> *agent_to_object,
+                            auction_array<int> *row_indexes,
+                            matrix_t mat_type) {
     assert(!results->is_empty);
     int agent, object;
     int next_agent_idx = 0;
