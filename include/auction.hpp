@@ -54,7 +54,7 @@ bool check_eCS(auction_array<T> *profits, auction_array<T> *prices,
     }
 
     for (int i = 0; i < S->size; i++) {
-        int agent = S->result[i].agent;
+        int agent  = S->result[i].agent;
         int object = S->result[i].object;
         if (agent != -1) {
             if (!(profits->data[agent] + prices->data[object] ==
@@ -77,27 +77,27 @@ void forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
 
     for (int i = 0; i < cost_matrix->rows; i++) {
         bool assignment_found = false;
-        bool max_found = false;
-        T max1 = -MIN_INF;
-        T max2 = -MIN_INF;
-        T best_value = 0;
-        int best_obj = -1;
+        bool max_found        = false;
+        T max1                = -MIN_INF;
+        T max2                = -MIN_INF;
+        T best_value          = 0;
+        int best_obj          = -1;
         // Select an unassigned agent
         if (agents_mask->data[i] == true) {
             continue;
         }
         for (int j = 0; j < cost_matrix->cols; j++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
-            T diff = value - prices->data[j];
+            T diff  = value - prices->data[j];
             // Find best object and associated value
             if (diff > max1) {
                 if (max_found) {
                     max2 = max1;
                 }
-                max1 = diff;
-                best_obj = j;
+                max1       = diff;
+                best_obj   = j;
                 best_value = value;
-                max_found = true;
+                max_found  = true;
             }
             if (diff > max2 && j != best_obj) {
                 max2 = diff;
@@ -107,23 +107,23 @@ void forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
             continue;
         }
 
-        T bid = best_value - max2 + eps;
+        T bid                  = best_value - max2 + eps;
         prices->data[best_obj] = *lambda > bid ? *lambda : bid;
-        profits->data[i] = max2 - eps;
+        profits->data[i]       = max2 - eps;
         if (*lambda <= bid) {
-            agents_mask->data[i] = true;
+            agents_mask->data[i]         = true;
             objects_mask->data[best_obj] = true;
 
             bool new_assignment = true;
 
             for (int k = 0; k < result->size; k++) {
                 int old_object = result->result[k].object;
-                int old_agent = result->result[k].agent;
+                int old_agent  = result->result[k].agent;
                 if (old_object == best_obj) {
                     agents_mask->data[old_agent] = false;
-                    new_assignment = false;
-                    result->result[k].agent = i;
-                    result->result[k].value = best_value;
+                    new_assignment               = false;
+                    result->result[k].agent      = i;
+                    result->result[k].value      = best_value;
                     break;
                 }
             }
@@ -131,10 +131,10 @@ void forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
                 int free_idx;
                 find_available_idx(result, &free_idx);
 
-                result->result[free_idx].agent = i;
+                result->result[free_idx].agent  = i;
                 result->result[free_idx].object = best_obj;
-                result->result[free_idx].value = best_value;
-                result->is_empty = false;
+                result->result[free_idx].value  = best_value;
+                result->is_empty                = false;
                 result->n_assignment++;
             }
             assignment_found = true;
@@ -155,26 +155,26 @@ void simple_forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
 
     for (int i = 0; i < cost_matrix->rows; i++) {
         bool max_found = false;
-        T max1 = -MIN_INF;
-        T max2 = -MIN_INF;
-        T best_value = 0;
-        int best_obj = -1;
+        T max1         = -MIN_INF;
+        T max2         = -MIN_INF;
+        T best_value   = 0;
+        int best_obj   = -1;
         // Select an unassigned agent
         if (agents_mask->data[i] == true) {
             continue;
         }
         for (int j = 0; j < cost_matrix->cols; j++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
-            T diff = value - prices->data[j];
+            T diff  = value - prices->data[j];
             // Find best object and associated value
             if (diff > max1) {
                 if (max_found) {
                     max2 = max1;
                 }
-                max1 = diff;
-                best_obj = j;
+                max1       = diff;
+                best_obj   = j;
                 best_value = value;
-                max_found = true;
+                max_found  = true;
             }
             if (diff > max2 && j != best_obj) {
                 max2 = diff;
@@ -192,12 +192,12 @@ void simple_forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
 
         for (int k = 0; k < result->size; k++) {
             int old_object = result->result[k].object;
-            int old_agent = result->result[k].agent;
+            int old_agent  = result->result[k].agent;
             if (old_object == best_obj) {
                 agents_mask->data[old_agent] = false;
-                new_assignment = false;
-                result->result[k].agent = i;
-                result->result[k].value = best_value;
+                new_assignment               = false;
+                result->result[k].agent      = i;
+                result->result[k].value      = best_value;
                 break;
             }
         }
@@ -205,10 +205,10 @@ void simple_forward(auction_array<T> *cost_matrix, auction_array<T> *prices,
             int free_idx;
             find_available_idx(result, &free_idx);
 
-            result->result[free_idx].agent = i;
+            result->result[free_idx].agent  = i;
             result->result[free_idx].object = best_obj;
-            result->result[free_idx].value = best_value;
-            result->is_empty = false;
+            result->result[free_idx].value  = best_value;
+            result->is_empty                = false;
             result->n_assignment++;
         }
     }
@@ -223,11 +223,11 @@ void backward(auction_array<T> *cost_matrix, auction_array<T> *prices,
 
     for (int j = 0; j < cost_matrix->cols; j++) {
         bool assignment_found = false;
-        bool max_found = false;
-        T max1 = -MIN_INF;
-        T max2 = -MIN_INF;
-        T best_value = 0;
-        int best_agent = -1;
+        bool max_found        = false;
+        T max1                = -MIN_INF;
+        T max2                = -MIN_INF;
+        T best_value          = 0;
+        int best_agent        = -1;
         // Select an unassigned object
         if (objects_mask->data[j] == true) {
             continue;
@@ -240,16 +240,16 @@ void backward(auction_array<T> *cost_matrix, auction_array<T> *prices,
         std::cout << "[INFO] Processing backward" << std::endl;
         for (int i = 0; i < cost_matrix->rows; i++) {
             T value = cost_matrix->data[i * cost_matrix->cols + j];
-            T diff = value - profits->data[i];
+            T diff  = value - profits->data[i];
             // Find best agent and associated value
             if (diff > max1) {
                 if (max_found) {
                     max2 = max1;
                 }
-                max1 = diff;
+                max1       = diff;
                 best_agent = i;
                 best_value = value;
-                max_found = true;
+                max_found  = true;
             }
             if (diff > max2 && i != best_agent) {
                 max2 = diff;
@@ -264,22 +264,22 @@ void backward(auction_array<T> *cost_matrix, auction_array<T> *prices,
 
             T bid = max2 - eps;
 
-            prices->data[j] = *lambda > bid ? *lambda : bid;
+            prices->data[j]           = *lambda > bid ? *lambda : bid;
             profits->data[best_agent] = best_value - prices->data[j];
 
-            objects_mask->data[j] = true;
+            objects_mask->data[j]         = true;
             agents_mask->data[best_agent] = true;
 
             bool new_assignment = true;
 
             for (int k = 0; k < result->size; k++) {
                 int old_object = result->result[k].object;
-                int old_agent = result->result[k].agent;
+                int old_agent  = result->result[k].agent;
                 if (old_agent == best_agent) {
                     objects_mask->data[old_object] = false;
-                    new_assignment = false;
-                    result->result[k].object = j;
-                    result->result[k].value = best_value;
+                    new_assignment                 = false;
+                    result->result[k].object       = j;
+                    result->result[k].value        = best_value;
                     break;
                 }
             }
@@ -287,17 +287,17 @@ void backward(auction_array<T> *cost_matrix, auction_array<T> *prices,
                 int free_idx;
                 find_available_idx(result, &free_idx);
 
-                result->result[free_idx].agent = best_agent;
+                result->result[free_idx].agent  = best_agent;
                 result->result[free_idx].object = j;
-                result->result[free_idx].value = best_value;
-                result->is_empty = false;
+                result->result[free_idx].value  = best_value;
+                result->is_empty                = false;
                 result->n_assignment++;
             }
             assignment_found = true;
         } else {
-            prices->data[j] = max1 - eps;
+            prices->data[j]        = max1 - eps;
             int n_objs_small_price = 0;
-            T new_lambda = *lambda;
+            T new_lambda           = *lambda;
 
             for (int o = 0; o < prices->cols; o++) {
                 if (prices->data[o] < *lambda) {
@@ -343,7 +343,7 @@ bool assignment_found(auction_array<bool> *assigned_agents) {
 template <typename T = double>
 void solve_simple(auction_array<T> *cost_matrix, const double eps,
                   assignments<T> *result, int *n_iter) {
-    int n_agents = cost_matrix->rows;
+    int n_agents  = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
     assert(n_objects == n_agents);
@@ -371,7 +371,7 @@ void solve_simple(auction_array<T> *cost_matrix, const double eps,
 template <typename T = double>
 void solve_jacobi(auction_array<T> *cost_matrix, const double eps,
                   assignments<T> *result, const matrix_t mat_type, int *niter) {
-    int n_agents = cost_matrix->rows;
+    int n_agents  = cost_matrix->rows;
     int n_objects = cost_matrix->cols;
 
     auction_array<T> prices;
@@ -388,7 +388,7 @@ void solve_jacobi(auction_array<T> *cost_matrix, const double eps,
     int n_loops = 0;
 
     while (true) {
-        bool forward_found = false;
+        bool forward_found  = false;
         bool backward_found = false;
         if (n_loops > MAX_ITER_AUCTION) {
             dump_array("dumped_array_v2.txt", cost_matrix);
@@ -463,14 +463,14 @@ void assignements_to_arrays(assignments<T> *results,
     assert(!results->is_empty);
     int agent, object;
     int next_agent_idx = 0;
-    int next_obj_idx = 0;
+    int next_obj_idx   = 0;
 
     for (int i = 0; i < results->size; i++) {
-        agent = results->result[i].agent;
+        agent  = results->result[i].agent;
         object = results->result[i].object;
         if (agent != -1 && object != -1) {
             if (mat_type == MLN) {
-                row_indexes->data[next_obj_idx++] = agent;
+                row_indexes->data[next_obj_idx++]       = agent;
                 agent_to_object->data[next_agent_idx++] = object;
             } else if (mat_type == MGN) {
 #ifdef VERBOSE
@@ -481,7 +481,7 @@ void assignements_to_arrays(assignments<T> *results,
                 agent_to_object->data[next_agent_idx++] = agent;
             } else {
                 row_indexes->data[next_agent_idx++] = i;
-                agent_to_object->data[agent] = object;
+                agent_to_object->data[agent]        = object;
             }
         }
     }

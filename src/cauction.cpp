@@ -33,9 +33,9 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
     }
     assignments<double> result;
     assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
-    result.size = cpp_cost_matrix.rows;
-    result.is_empty = true;
-    result.n_assignment = 0;
+    result.size              = cpp_cost_matrix.rows;
+    result.is_empty          = true;
+    result.n_assignment      = 0;
     result.result = new (std::nothrow) assignment<double>[result.size];
     for (int i = 0; i < result.size; i++) {
         result.result[i] = assig;
@@ -46,13 +46,13 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
     solve_simple<double>(&cpp_cost_matrix, eps, &result, &n_iter);
 
     int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
-    int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
-    int a_idx = 0;
+    int *row_idx      = (int *)malloc(result.n_assignment * sizeof(int));
+    int a_idx         = 0;
     for (int i = 0; i < result.size; i++) {
-        int agent = result.result[i].agent;
+        int agent  = result.result[i].agent;
         int object = result.result[i].object;
         if (agent != -1 && object != -1) {
-            row_idx[a_idx++] = i;
+            row_idx[a_idx++]    = i;
             agent_to_obj[agent] = object;
         }
     }
@@ -60,10 +60,10 @@ assignment_result *solve_forward(d_array *cost_matrix, float eps) {
     assignment_result *res =
         (assignment_result *)malloc(sizeof(assignment_result));
 
-    res->len = result.n_assignment;
+    res->len             = result.n_assignment;
     res->agent_to_object = agent_to_obj;
-    res->row_idx = row_idx;
-    res->n_iter = n_iter;
+    res->row_idx         = row_idx;
+    res->n_iter          = n_iter;
 
     return res;
 }
@@ -104,9 +104,9 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
 
         assignments<double> result;
         assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
-        result.size = t_cpp_cost_matrix.rows;
-        result.is_empty = true;
-        result.n_assignment = 0;
+        result.size              = t_cpp_cost_matrix.rows;
+        result.is_empty          = true;
+        result.n_assignment      = 0;
         result.result = new (std::nothrow) assignment<double>[result.size];
         for (int i = 0; i < result.size; i++) {
             result.result[i] = assig;
@@ -117,24 +117,24 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
                              &niter);
 
         int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
-        int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
-        int a_idx = 0;
-        int o_idx = 0;
+        int *row_idx      = (int *)malloc(result.n_assignment * sizeof(int));
+        int a_idx         = 0;
+        int o_idx         = 0;
         for (int i = 0; i < result.size; i++) {
-            int agent = result.result[i].agent;
+            int agent  = result.result[i].agent;
             int object = result.result[i].object;
             if (agent != -1 && object != -1) {
                 if (mat_type == MLN) {
                     assert(a_idx < result.n_assignment);
                     assert(o_idx < result.n_assignment);
                     agent_to_obj[a_idx++] = object;
-                    row_idx[o_idx++] = agent;
+                    row_idx[o_idx++]      = agent;
                 } else if (mat_type == MGN) {
                     agent_to_obj[a_idx++] = agent;
-                    row_idx[o_idx++] = object;
+                    row_idx[o_idx++]      = object;
 
                 } else {
-                    row_idx[a_idx++] = i;
+                    row_idx[a_idx++]    = i;
                     agent_to_obj[agent] = object;
                 }
             }
@@ -147,10 +147,10 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         assignment_result *res =
             (assignment_result *)malloc(sizeof(assignment_result));
 
-        res->len = result.n_assignment;
+        res->len             = result.n_assignment;
         res->agent_to_object = agent_to_obj;
-        res->row_idx = row_idx;
-        res->n_iter = niter;
+        res->row_idx         = row_idx;
+        res->n_iter          = niter;
 
         return res;
     } else {
@@ -163,9 +163,9 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         }
         assignments<double> result;
         assignment<double> assig = {.agent = -1, .object = -1, .value = -1};
-        result.size = rows;
-        result.is_empty = true;
-        result.n_assignment = 0;
+        result.size              = rows;
+        result.is_empty          = true;
+        result.n_assignment      = 0;
         result.result = new (std::nothrow) assignment<double>[result.size];
         for (int i = 0; i < result.size; i++) {
             result.result[i] = assig;
@@ -179,20 +179,20 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         // puts("[C]: End solving");
         // Convert assignments<double> to assignment_result
         int *agent_to_obj = (int *)malloc(result.n_assignment * sizeof(int));
-        int *row_idx = (int *)malloc(result.n_assignment * sizeof(int));
-        int a_idx = 0;
-        int o_idx = 0;
+        int *row_idx      = (int *)malloc(result.n_assignment * sizeof(int));
+        int a_idx         = 0;
+        int o_idx         = 0;
         for (int i = 0; i < result.size; i++) {
-            int agent = result.result[i].agent;
+            int agent  = result.result[i].agent;
             int object = result.result[i].object;
             if (agent != -1 && object != -1) {
                 if (mat_type != MEQN) {
                     assert(a_idx < result.n_assignment);
                     assert(o_idx < result.n_assignment);
                     agent_to_obj[a_idx++] = object;
-                    row_idx[o_idx++] = agent;
+                    row_idx[o_idx++]      = agent;
                 } else {
-                    row_idx[a_idx++] = i;
+                    row_idx[a_idx++]    = i;
                     agent_to_obj[agent] = object;
                 }
             }
@@ -210,10 +210,10 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
         assignment_result *res =
             (assignment_result *)malloc(sizeof(assignment_result));
 
-        res->len = result.n_assignment;
+        res->len             = result.n_assignment;
         res->agent_to_object = agent_to_obj;
-        res->row_idx = row_idx;
-        res->n_iter = niter;
+        res->row_idx         = row_idx;
+        res->n_iter          = niter;
 
         // puts("[C]: Populated result");
 
@@ -223,8 +223,8 @@ assignment_result *solve(d_array *cost_matrix, float eps) {
 
 void swap_c(int *a, int *b) {
     int tmp = *b;
-    *b = *a;
-    *a = tmp;
+    *b      = *a;
+    *a      = tmp;
 }
 
 void sort_together_c(int *array1, int *array2, int length) {
