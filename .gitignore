@@ -6,3 +6,4 @@ gen_rnd_array.py
 sparse*.hpp
 vgcore*
 __pycache__
+[0-9]*x[0-9]*/
