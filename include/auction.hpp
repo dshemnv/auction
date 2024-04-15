@@ -447,7 +447,7 @@ void solve_jacobi(auction_array<T> *cost_matrix, const double eps,
             break;
         }
     }
-    // std::cout << "Asignment found in " << n_loops << " loops" << std::endl;
+    // std::nout << "Asignment found in " << n_loops << " loops" << std::endl;
     delete[] profits.data;
     delete[] prices.data;
     delete[] assigned_agents.data;
