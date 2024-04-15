@@ -1,4 +1,4 @@
-# Jacobi variant of the Auction Algorithm in C++
+# Auction Algorithm in C++
 Compile :
 ```
 make
